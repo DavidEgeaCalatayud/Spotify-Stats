@@ -84,6 +84,28 @@ data class YearlyListeningRow(
     val listeningMs: Long,
 )
 
+data class HourlyListeningRow(
+    val hour: Int,
+    val plays: Long,
+    val listeningMs: Long,
+)
+
+data class ListeningHeatmapRow(
+    val weekday: Int,
+    val hour: Int,
+    val plays: Long,
+    val listeningMs: Long,
+)
+
+data class PlaybackBehaviorRow(
+    val skippedEvents: Long,
+    val skipKnownEvents: Long,
+    val shuffleEvents: Long,
+    val shuffleKnownEvents: Long,
+    val offlineEvents: Long,
+    val offlineKnownEvents: Long,
+)
+
 @Dao
 interface ListeningHistoryDao {
 
@@ -109,6 +131,62 @@ interface ListeningHistoryDao {
         fromInclusive: Long,
         toInclusive: Long,
     ): Flow<OverviewStatsRow>
+
+    @Query(
+        """
+        SELECT
+            CAST(strftime('%H', played_at / 1000, 'unixepoch', 'localtime') AS INTEGER) AS hour,
+            COUNT(*) AS plays,
+            COALESCE(SUM(ms_played), 0) AS listeningMs
+        FROM play_events
+        WHERE played_at >= :fromInclusive
+          AND played_at <= :toInclusive
+        GROUP BY hour
+        ORDER BY hour ASC
+        """,
+    )
+    fun observeHourlyListening(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<List<HourlyListeningRow>>
+
+    @Query(
+        """
+        SELECT
+            CAST(strftime('%w', played_at / 1000, 'unixepoch', 'localtime') AS INTEGER) AS weekday,
+            CAST(strftime('%H', played_at / 1000, 'unixepoch', 'localtime') AS INTEGER) AS hour,
+            COUNT(*) AS plays,
+            COALESCE(SUM(ms_played), 0) AS listeningMs
+        FROM play_events
+        WHERE played_at >= :fromInclusive
+          AND played_at <= :toInclusive
+        GROUP BY weekday, hour
+        ORDER BY weekday ASC, hour ASC
+        """,
+    )
+    fun observeListeningHeatmap(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<List<ListeningHeatmapRow>>
+
+    @Query(
+        """
+        SELECT
+            COALESCE(SUM(CASE WHEN skipped = 1 THEN 1 ELSE 0 END), 0) AS skippedEvents,
+            COALESCE(SUM(CASE WHEN skipped IS NOT NULL THEN 1 ELSE 0 END), 0) AS skipKnownEvents,
+            COALESCE(SUM(CASE WHEN shuffle = 1 THEN 1 ELSE 0 END), 0) AS shuffleEvents,
+            COALESCE(SUM(CASE WHEN shuffle IS NOT NULL THEN 1 ELSE 0 END), 0) AS shuffleKnownEvents,
+            COALESCE(SUM(CASE WHEN offline = 1 THEN 1 ELSE 0 END), 0) AS offlineEvents,
+            COALESCE(SUM(CASE WHEN offline IS NOT NULL THEN 1 ELSE 0 END), 0) AS offlineKnownEvents
+        FROM play_events
+        WHERE played_at >= :fromInclusive
+          AND played_at <= :toInclusive
+        """,
+    )
+    fun observePlaybackBehavior(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<PlaybackBehaviorRow>
 
     @Query(
         """
