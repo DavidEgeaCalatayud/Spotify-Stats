@@ -103,7 +103,7 @@ interface ExplorationDao {
     suspend fun listeningMs(from: Long, to: Long): Long
 
     @Query("""
-        SELECT 'track' AS kind, t.id, t.name,
+        SELECT 'track' AS kind, t.id AS id, t.name AS name,
             (SELECT a.name FROM artists a JOIN track_artists ta ON ta.artist_id = a.id
                 WHERE ta.track_id = t.id ORDER BY ta.position, a.id LIMIT 1) AS subtitle,
             COUNT(pe.id) AS plays
@@ -114,12 +114,12 @@ interface ExplorationDao {
                 (SELECT rowid FROM artists_fts WHERE artists_fts MATCH :query)))
         GROUP BY t.id
         UNION ALL
-        SELECT 'artist' AS kind, a.id, a.name, NULL AS subtitle, COUNT(pe.id) AS plays
+        SELECT 'artist' AS kind, a.id AS id, a.name AS name, NULL AS subtitle, COUNT(pe.id) AS plays
         FROM artists a JOIN track_artists ta ON ta.artist_id = a.id JOIN play_events pe ON pe.track_id = ta.track_id
         WHERE a.id IN (SELECT rowid FROM artists_fts WHERE artists_fts MATCH :query)
             AND pe.played_at BETWEEN :from AND :to GROUP BY a.id
         UNION ALL
-        SELECT 'album' AS kind, al.id, al.name, NULL AS subtitle, COUNT(pe.id) AS plays
+        SELECT 'album' AS kind, al.id AS id, al.name AS name, NULL AS subtitle, COUNT(pe.id) AS plays
         FROM albums al JOIN tracks t ON t.album_id = al.id JOIN play_events pe ON pe.track_id = t.id
         WHERE pe.played_at BETWEEN :from AND :to AND (
             al.id IN (SELECT rowid FROM albums_fts WHERE albums_fts MATCH :query)

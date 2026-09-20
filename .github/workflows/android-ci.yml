@@ -38,5 +38,28 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Verify
-        run: |
-          ./gradlew --no-daemon             :domain:testDebugUnitTest             :data:import:testDebugUnitTest             :app:lintDebug             :app:testDebugUnitTest             :app:assembleDebug
+        run: >-
+          ./gradlew --no-daemon
+          :domain:testDebugUnitTest
+          :core:database:testDebugUnitTest
+          :data:import:testDebugUnitTest
+          :data:history:testDebugUnitTest
+          :data:privacy:testDebugUnitTest
+          :app:lintDebug :app:testDebugUnitTest :app:assembleDebug
+
+      - name: Upload verification reports and schemas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-reports
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+            app/build/reports/lint-results-debug.*
+            core/database/schemas/
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotify-stats-debug
+          path: app/build/outputs/apk/debug/*.apk
