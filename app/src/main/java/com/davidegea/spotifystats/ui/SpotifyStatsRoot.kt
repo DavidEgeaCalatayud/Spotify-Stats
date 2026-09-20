@@ -12,7 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.findStartDestination
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.davidegea.spotifystats.ui.home.HomeRoute
 import com.davidegea.spotifystats.ui.placeholder.PlaceholderScreen
 
