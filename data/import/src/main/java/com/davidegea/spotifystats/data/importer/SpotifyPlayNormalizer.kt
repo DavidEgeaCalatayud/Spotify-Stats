@@ -5,7 +5,7 @@ class SpotifyPlayNormalizer(
     private val timestampParser: SpotifyTimestampParser = SpotifyTimestampParser(),
 ) {
 
-    fun normalize(record: SpotifyExtendedHistoryRecord): NormalizedPlay? {
+    internal fun normalize(record: SpotifyExtendedHistoryRecord): NormalizedPlay? {
         val trackName = record.trackName?.trim()?.takeIf(String::isNotEmpty) ?: return null
         val artistName = record.artistName?.trim()?.takeIf(String::isNotEmpty) ?: return null
         val timestamp = record.timestamp?.trim()?.takeIf(String::isNotEmpty) ?: return null
