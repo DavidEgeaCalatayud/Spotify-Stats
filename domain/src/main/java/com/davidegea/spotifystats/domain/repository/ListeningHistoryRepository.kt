@@ -4,12 +4,16 @@ import com.davidegea.spotifystats.domain.model.AlbumDetail
 import com.davidegea.spotifystats.domain.model.AlbumRanking
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
+import com.davidegea.spotifystats.domain.model.HourlyListening
+import com.davidegea.spotifystats.domain.model.ListeningHeatmapCell
 import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
 import com.davidegea.spotifystats.domain.model.OverviewStats
+import com.davidegea.spotifystats.domain.model.PlaybackBehaviorStats
 import com.davidegea.spotifystats.domain.model.TrackDetail
 import com.davidegea.spotifystats.domain.model.TrackRanking
 import com.davidegea.spotifystats.domain.model.YearlyListening
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 interface ListeningHistoryRepository {
     fun observeOverviewStats(): Flow<OverviewStats>
@@ -18,6 +22,21 @@ interface ListeningHistoryRepository {
         fromInclusive: Long,
         toInclusive: Long,
     ): Flow<OverviewStats> = observeOverviewStats()
+
+    fun observeHourlyListening(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<List<HourlyListening>> = flowOf(emptyList())
+
+    fun observeListeningHeatmap(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<List<ListeningHeatmapCell>> = flowOf(emptyList())
+
+    fun observePlaybackBehavior(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<PlaybackBehaviorStats> = flowOf(PlaybackBehaviorStats())
 
     fun observeTopTracks(
         fromInclusive: Long,
