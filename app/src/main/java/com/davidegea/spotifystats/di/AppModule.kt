@@ -6,6 +6,7 @@ import com.davidegea.spotifystats.data.history.RoomListeningHistoryRepository
 import com.davidegea.spotifystats.database.SpotifyStatsDatabase
 import com.davidegea.spotifystats.database.dao.ListeningHistoryDao
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
+import com.davidegea.spotifystats.domain.usecase.ObserveOverviewStatsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,4 +38,9 @@ object AppModule {
     fun provideListeningHistoryRepository(
         dao: ListeningHistoryDao,
     ): ListeningHistoryRepository = RoomListeningHistoryRepository(dao)
+
+    @Provides
+    fun provideObserveOverviewStatsUseCase(
+        repository: ListeningHistoryRepository,
+    ): ObserveOverviewStatsUseCase = ObserveOverviewStatsUseCase(repository)
 }
