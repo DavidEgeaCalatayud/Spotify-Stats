@@ -19,7 +19,16 @@ class RoomListeningHistoryRepository(
 ) : ListeningHistoryRepository {
 
     override fun observeOverviewStats(): Flow<OverviewStats> =
-        dao.observeOverviewStats().map { row ->
+        observeOverviewStats(
+            fromInclusive = Long.MIN_VALUE,
+            toInclusive = Long.MAX_VALUE,
+        )
+
+    override fun observeOverviewStats(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<OverviewStats> =
+        dao.observeOverviewStats(fromInclusive, toInclusive).map { row ->
             OverviewStats(
                 totalPlays = row.totalPlays,
                 totalListeningMs = row.totalListeningMs,

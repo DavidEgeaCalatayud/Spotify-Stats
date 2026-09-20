@@ -43,6 +43,14 @@ data class LibraryRankings(
     val albums: List<AlbumRanking>,
 )
 
+data class HomeDashboard(
+    val overview: OverviewStats,
+    val topTrack: TrackRanking?,
+    val topArtist: ArtistRanking?,
+    val topAlbum: AlbumRanking?,
+    val recentActivity: List<ListeningHistoryItem>,
+)
+
 data class YearlyListening(
     val year: Int,
     val plays: Long,

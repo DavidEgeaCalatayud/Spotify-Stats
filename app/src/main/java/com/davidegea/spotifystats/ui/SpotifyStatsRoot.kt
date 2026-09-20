@@ -62,7 +62,17 @@ fun SpotifyStatsRoot() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(AppDestination.Home.route) {
-                HomeRoute()
+                HomeRoute(
+                    onTrackClick = { trackId ->
+                        navController.navigate("track/" + trackId)
+                    },
+                    onArtistClick = { artistId ->
+                        navController.navigate("artist/" + artistId)
+                    },
+                    onAlbumClick = { albumId ->
+                        navController.navigate("album/" + albumId)
+                    },
+                )
             }
             composable(AppDestination.Library.route) {
                 LibraryRoute(
