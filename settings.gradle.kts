@@ -23,4 +23,5 @@ include(
     ":core:designsystem",
     ":domain",
     ":data:history",
+    ":data:import",
 )

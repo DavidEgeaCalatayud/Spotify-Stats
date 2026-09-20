@@ -11,6 +11,7 @@ import com.davidegea.spotifystats.model.PlaySource
     tableName = "albums",
     indices = [
         Index(value = ["spotify_id"], unique = true),
+        Index(value = ["identity_key"], unique = true),
         Index(value = ["name"]),
     ],
 )
@@ -19,6 +20,8 @@ data class AlbumEntity(
     val id: Long = 0,
     @ColumnInfo(name = "spotify_id")
     val spotifyId: String?,
+    @ColumnInfo(name = "identity_key")
+    val identityKey: String,
     val name: String,
     @ColumnInfo(name = "release_date")
     val releaseDate: String?,
@@ -28,6 +31,7 @@ data class AlbumEntity(
     tableName = "artists",
     indices = [
         Index(value = ["spotify_id"], unique = true),
+        Index(value = ["identity_key"], unique = true),
         Index(value = ["normalized_name"]),
     ],
 )
@@ -36,6 +40,8 @@ data class ArtistEntity(
     val id: Long = 0,
     @ColumnInfo(name = "spotify_id")
     val spotifyId: String?,
+    @ColumnInfo(name = "identity_key")
+    val identityKey: String,
     val name: String,
     @ColumnInfo(name = "normalized_name")
     val normalizedName: String,

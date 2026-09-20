@@ -3,9 +3,13 @@ package com.davidegea.spotifystats.di
 import android.content.Context
 import androidx.room.Room
 import com.davidegea.spotifystats.data.history.RoomListeningHistoryRepository
+import com.davidegea.spotifystats.data.importer.RoomSpotifyHistoryImportRepository
 import com.davidegea.spotifystats.database.SpotifyStatsDatabase
+import com.davidegea.spotifystats.database.dao.ImportDao
 import com.davidegea.spotifystats.database.dao.ListeningHistoryDao
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
+import com.davidegea.spotifystats.domain.repository.SpotifyHistoryImportRepository
+import com.davidegea.spotifystats.domain.usecase.ImportSpotifyHistoryUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveOverviewStatsUseCase
 import dagger.Module
 import dagger.Provides
@@ -34,13 +38,35 @@ object AppModule {
     ): ListeningHistoryDao = database.listeningHistoryDao()
 
     @Provides
+    fun provideImportDao(
+        database: SpotifyStatsDatabase,
+    ): ImportDao = database.importDao()
+
+    @Provides
     @Singleton
     fun provideListeningHistoryRepository(
         dao: ListeningHistoryDao,
     ): ListeningHistoryRepository = RoomListeningHistoryRepository(dao)
 
     @Provides
+    @Singleton
+    fun provideSpotifyHistoryImportRepository(
+        @ApplicationContext context: Context,
+        database: SpotifyStatsDatabase,
+        importDao: ImportDao,
+    ): SpotifyHistoryImportRepository = RoomSpotifyHistoryImportRepository(
+        context = context,
+        database = database,
+        importDao = importDao,
+    )
+
+    @Provides
     fun provideObserveOverviewStatsUseCase(
         repository: ListeningHistoryRepository,
     ): ObserveOverviewStatsUseCase = ObserveOverviewStatsUseCase(repository)
+
+    @Provides
+    fun provideImportSpotifyHistoryUseCase(
+        repository: SpotifyHistoryImportRepository,
+    ): ImportSpotifyHistoryUseCase = ImportSpotifyHistoryUseCase(repository)
 }

@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":domain"))
     implementation(project(":data:history"))
+    implementation(project(":data:import"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
