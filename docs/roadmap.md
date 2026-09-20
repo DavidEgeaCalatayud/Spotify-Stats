@@ -24,27 +24,27 @@
 
 ## Epic 3 — Spotify Extended History import
 
-- [ ] Android Storage Access Framework document picker
-- [ ] Multiple JSON and ZIP support
-- [ ] Streaming JSON parser
+- [x] Android Storage Access Framework document picker
+- [x] Multiple JSON and ZIP support
+- [x] Streaming JSON parser
 - [ ] Export validation
-- [ ] Privacy-field filtering
-- [ ] Entity normalization
-- [ ] SHA-256 event fingerprinting
-- [ ] Batched transactional inserts
-- [ ] Import progress
-- [ ] Import summary / error report
+- [x] Privacy-field filtering
+- [x] Entity normalization
+- [x] SHA-256 event fingerprinting
+- [x] Batched transactional inserts
+- [x] Import progress
+- [x] Import summary / error report
 - [ ] Re-import idempotency tests
 
 ## Epic 4 — Core analytics
 
-- [ ] Total listening time
-- [ ] Raw event counts
+- [x] Total listening time
+- [x] Raw event counts
 - [ ] Meaningful-listen threshold
-- [ ] Track rankings
-- [ ] Artist rankings
-- [ ] Album rankings
-- [ ] Date filters
+- [x] Track rankings
+- [x] Artist rankings
+- [x] Album rankings
+- [x] Date filters
 - [ ] Daily aggregation cache
 
 ## Epic 5 — Core UI
@@ -52,13 +52,13 @@
 - [x] Navigation shell
 - [x] Home overview foundation
 - [ ] Import onboarding
-- [ ] Songs
-- [ ] Song detail
-- [ ] Artists
-- [ ] Artist detail
-- [ ] Albums
-- [ ] Album detail
-- [ ] History
+- [x] Songs
+- [x] Song detail
+- [x] Artists
+- [x] Artist detail
+- [x] Albums
+- [x] Album detail
+- [x] History
 
 ## Epic 6 — Advanced analytics
 
@@ -100,4 +100,4 @@
 
 ## MVP exit criteria
 
-The MVP is releasable when a user can install the app, import official Spotify Extended Streaming History, keep all data on-device, view overview/song/artist analytics with date filters, and use the app fully offline after import.
+The MVP is releasable when a user can install the app, import official Spotify Extended Streaming History, keep all data on-device, view overview/song/artist/album analytics with date filters, browse recent listening history, and use the app fully offline after import.

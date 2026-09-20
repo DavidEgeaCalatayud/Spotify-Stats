@@ -1,8 +1,10 @@
 package com.davidegea.spotifystats.domain.repository
 
+import com.davidegea.spotifystats.domain.model.AlbumDetail
 import com.davidegea.spotifystats.domain.model.AlbumRanking
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
+import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
 import com.davidegea.spotifystats.domain.model.OverviewStats
 import com.davidegea.spotifystats.domain.model.TrackDetail
 import com.davidegea.spotifystats.domain.model.TrackRanking
@@ -40,4 +42,17 @@ interface ListeningHistoryRepository {
         artistId: Long,
         limit: Int,
     ): Flow<List<TrackRanking>>
+
+    fun observeAlbumDetail(albumId: Long): Flow<AlbumDetail?>
+
+    fun observeAlbumTopTracks(
+        albumId: Long,
+        limit: Int,
+    ): Flow<List<TrackRanking>>
+
+    fun observeListeningHistory(
+        fromInclusive: Long,
+        toInclusive: Long,
+        limit: Int,
+    ): Flow<List<ListeningHistoryItem>>
 }

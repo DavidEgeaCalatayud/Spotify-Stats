@@ -1,9 +1,11 @@
 package com.davidegea.spotifystats.data.history
 
 import com.davidegea.spotifystats.database.dao.ListeningHistoryDao
+import com.davidegea.spotifystats.domain.model.AlbumDetail
 import com.davidegea.spotifystats.domain.model.AlbumRanking
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
+import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
 import com.davidegea.spotifystats.domain.model.OverviewStats
 import com.davidegea.spotifystats.domain.model.TrackDetail
 import com.davidegea.spotifystats.domain.model.TrackRanking
@@ -117,6 +119,50 @@ class RoomListeningHistoryRepository(
     ): Flow<List<TrackRanking>> =
         dao.observeArtistTopTracks(artistId, limit).map { rows ->
             rows.map { row -> row.toDomain() }
+        }
+
+    override fun observeAlbumDetail(albumId: Long): Flow<AlbumDetail?> =
+        dao.observeAlbumDetail(albumId).map { row ->
+            row?.let {
+                AlbumDetail(
+                    id = it.id,
+                    name = it.name,
+                    artistName = it.artistName,
+                    totalPlays = it.totalPlays,
+                    totalListeningMs = it.totalListeningMs,
+                    uniqueTracks = it.uniqueTracks,
+                    firstPlayedAtEpochMs = it.firstPlayedAtEpochMs,
+                    lastPlayedAtEpochMs = it.lastPlayedAtEpochMs,
+                )
+            }
+        }
+
+    override fun observeAlbumTopTracks(
+        albumId: Long,
+        limit: Int,
+    ): Flow<List<TrackRanking>> =
+        dao.observeAlbumTopTracks(albumId, limit).map { rows ->
+            rows.map { row -> row.toDomain() }
+        }
+
+    override fun observeListeningHistory(
+        fromInclusive: Long,
+        toInclusive: Long,
+        limit: Int,
+    ): Flow<List<ListeningHistoryItem>> =
+        dao.observeListeningHistory(fromInclusive, toInclusive, limit).map { rows ->
+            rows.map { row ->
+                ListeningHistoryItem(
+                    eventId = row.id,
+                    trackId = row.trackId,
+                    trackName = row.trackName,
+                    artistName = row.artistName,
+                    albumName = row.albumName,
+                    playedAtEpochMs = row.playedAtEpochMs,
+                    listeningMs = row.listeningMs,
+                    skipped = row.skipped,
+                )
+            }
         }
 
     private fun com.davidegea.spotifystats.database.dao.TrackRankingRow.toDomain(): TrackRanking =

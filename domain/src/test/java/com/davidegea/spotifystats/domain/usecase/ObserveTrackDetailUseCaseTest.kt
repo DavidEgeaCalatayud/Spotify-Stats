@@ -1,8 +1,10 @@
 package com.davidegea.spotifystats.domain.usecase
 
+import com.davidegea.spotifystats.domain.model.AlbumDetail
 import com.davidegea.spotifystats.domain.model.AlbumRanking
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
+import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
 import com.davidegea.spotifystats.domain.model.OverviewStats
 import com.davidegea.spotifystats.domain.model.TrackDetail
 import com.davidegea.spotifystats.domain.model.TrackRanking
@@ -80,4 +82,17 @@ private class FakeListeningHistoryRepository(
         artistId: Long,
         limit: Int,
     ): Flow<List<TrackRanking>> = flowOf(emptyList())
+
+    override fun observeAlbumDetail(albumId: Long): Flow<AlbumDetail?> = flowOf(null)
+
+    override fun observeAlbumTopTracks(
+        albumId: Long,
+        limit: Int,
+    ): Flow<List<TrackRanking>> = flowOf(emptyList())
+
+    override fun observeListeningHistory(
+        fromInclusive: Long,
+        toInclusive: Long,
+        limit: Int,
+    ): Flow<List<ListeningHistoryItem>> = flowOf(emptyList())
 }

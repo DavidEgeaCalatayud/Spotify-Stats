@@ -72,3 +72,26 @@ data class ArtistDetail(
     val lastPlayedAtEpochMs: Long?,
     val topTracks: List<TrackRanking> = emptyList(),
 )
+
+data class AlbumDetail(
+    val id: Long,
+    val name: String,
+    val artistName: String?,
+    val totalPlays: Long,
+    val totalListeningMs: Long,
+    val uniqueTracks: Long,
+    val firstPlayedAtEpochMs: Long?,
+    val lastPlayedAtEpochMs: Long?,
+    val topTracks: List<TrackRanking> = emptyList(),
+)
+
+data class ListeningHistoryItem(
+    val eventId: Long,
+    val trackId: Long,
+    val trackName: String,
+    val artistName: String?,
+    val albumName: String?,
+    val playedAtEpochMs: Long,
+    val listeningMs: Long,
+    val skipped: Boolean?,
+)

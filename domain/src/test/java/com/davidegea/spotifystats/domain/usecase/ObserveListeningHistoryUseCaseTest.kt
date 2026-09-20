@@ -2,6 +2,7 @@ package com.davidegea.spotifystats.domain.usecase
 
 import com.davidegea.spotifystats.domain.model.AlbumDetail
 import com.davidegea.spotifystats.domain.model.AlbumRanking
+import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
 import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
@@ -10,6 +11,7 @@ import com.davidegea.spotifystats.domain.model.TrackDetail
 import com.davidegea.spotifystats.domain.model.TrackRanking
 import com.davidegea.spotifystats.domain.model.YearlyListening
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
+import java.util.TimeZone
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -17,43 +19,31 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class ObserveArtistDetailUseCaseTest {
+class ObserveListeningHistoryUseCaseTest {
 
     @Test
-    fun combinesBaseDetailWithTopTracks() = runBlocking {
-        val topTracks = listOf(
-            TrackRanking(
-                id = 10,
-                name = "After Hours",
-                artistName = "The Weeknd",
-                plays = 621,
-                listeningMs = 10_000,
-            ),
+    fun resolvesSelectedPeriodBeforeQueryingRepository() = runBlocking {
+        val now = 1_800_000_000_000L
+        val repository = HistoryFakeRepository()
+        val resolver = AnalyticsTimeRangeResolver(
+            nowProvider = { now },
+            timeZone = TimeZone.getTimeZone("UTC"),
         )
-        val repository = ArtistFakeRepository(
-            artistDetail = ArtistDetail(
-                id = 4,
-                name = "The Weeknd",
-                totalPlays = 8421,
-                totalListeningMs = 100_000,
-                uniqueTracks = 148,
-                firstPlayedAtEpochMs = 1,
-                lastPlayedAtEpochMs = 2,
-            ),
-            topTracks = topTracks,
-        )
+        val useCase = ObserveListeningHistoryUseCase(repository, resolver)
 
-        val result = ObserveArtistDetailUseCase(repository)(4).first()
+        useCase(AnalyticsPeriod.LAST_7_DAYS, limit = 25).first()
 
-        assertEquals(topTracks, result?.topTracks)
-        assertEquals(148L, result?.uniqueTracks)
+        assertEquals(now, repository.toInclusive)
+        assertEquals(now - 7L * 24 * 60 * 60 * 1_000, repository.fromInclusive)
+        assertEquals(25, repository.limit)
     }
 }
 
-private class ArtistFakeRepository(
-    private val artistDetail: ArtistDetail? = null,
-    private val topTracks: List<TrackRanking> = emptyList(),
-) : ListeningHistoryRepository {
+private class HistoryFakeRepository : ListeningHistoryRepository {
+    var fromInclusive: Long? = null
+    var toInclusive: Long? = null
+    var limit: Int? = null
+
     override fun observeOverviewStats(): Flow<OverviewStats> =
         flowOf(OverviewStats(0, 0, 0, 0))
 
@@ -80,12 +70,12 @@ private class ArtistFakeRepository(
     override fun observeTrackListeningByYear(trackId: Long): Flow<List<YearlyListening>> =
         flowOf(emptyList())
 
-    override fun observeArtistDetail(artistId: Long): Flow<ArtistDetail?> = flowOf(artistDetail)
+    override fun observeArtistDetail(artistId: Long): Flow<ArtistDetail?> = flowOf(null)
 
     override fun observeArtistTopTracks(
         artistId: Long,
         limit: Int,
-    ): Flow<List<TrackRanking>> = flowOf(topTracks.take(limit))
+    ): Flow<List<TrackRanking>> = flowOf(emptyList())
 
     override fun observeAlbumDetail(albumId: Long): Flow<AlbumDetail?> = flowOf(null)
 
@@ -98,5 +88,10 @@ private class ArtistFakeRepository(
         fromInclusive: Long,
         toInclusive: Long,
         limit: Int,
-    ): Flow<List<ListeningHistoryItem>> = flowOf(emptyList())
+    ): Flow<List<ListeningHistoryItem>> {
+        this.fromInclusive = fromInclusive
+        this.toInclusive = toInclusive
+        this.limit = limit
+        return flowOf(emptyList())
+    }
 }

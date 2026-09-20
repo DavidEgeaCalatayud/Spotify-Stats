@@ -24,6 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
+import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private enum class LibrarySection(
     val label: String,
@@ -31,12 +35,14 @@ private enum class LibrarySection(
     Songs("Songs"),
     Artists("Artists"),
     Albums("Albums"),
+    History("History"),
 }
 
 @Composable
 fun LibraryRoute(
     onTrackClick: (Long) -> Unit,
     onArtistClick: (Long) -> Unit,
+    onAlbumClick: (Long) -> Unit,
     viewModel: LibraryViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -83,6 +89,14 @@ fun LibraryRoute(
             }
         }
 
+        if (section == LibrarySection.History) {
+            Text(
+                text = "Latest 250 plays in the selected period",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
+        }
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -126,6 +140,17 @@ fun LibraryRoute(
                         subtitle = item.artistName,
                         plays = item.plays,
                         listeningMs = item.listeningMs,
+                        onClick = { onAlbumClick(item.id) },
+                    )
+                }
+
+                LibrarySection.History -> itemsIndexed(
+                    items = state.history,
+                    key = { _, item -> item.eventId },
+                ) { _, item ->
+                    HistoryRow(
+                        item = item,
+                        onClick = { onTrackClick(item.trackId) },
                     )
                 }
             }
@@ -185,13 +210,63 @@ private fun RankingRow(
     }
 }
 
+@Composable
+private fun HistoryRow(
+    item: ListeningHistoryItem,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = item.trackName,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            val context = listOfNotNull(item.artistName, item.albumName)
+                .joinToString(" · ")
+            if (context.isNotBlank()) {
+                Text(
+                    text = context,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Text(
+                text = formatHistoryTimestamp(item.playedAtEpochMs),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+        Column {
+            Text(
+                text = formatListeningTime(item.listeningMs),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (item.skipped == true) {
+                Text(
+                    text = "Skipped",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+}
+
+private fun formatHistoryTimestamp(epochMs: Long): String =
+    SimpleDateFormat("d MMM · HH:mm", Locale.getDefault()).format(Date(epochMs))
+
 private fun formatListeningTime(milliseconds: Long): String {
-    val totalMinutes = milliseconds / 60_000
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-    return if (hours > 0) {
-        hours.toString() + "h " + minutes.toString() + "m"
-    } else {
-        minutes.toString() + "m"
+    val totalSeconds = milliseconds / 1_000
+    val hours = totalSeconds / 3_600
+    val minutes = (totalSeconds % 3_600) / 60
+    val seconds = totalSeconds % 60
+
+    return when {
+        hours > 0 -> hours.toString() + "h " + minutes.toString() + "m"
+        minutes > 0 -> minutes.toString() + "m " + seconds.toString() + "s"
+        else -> seconds.toString() + "s"
     }
 }
