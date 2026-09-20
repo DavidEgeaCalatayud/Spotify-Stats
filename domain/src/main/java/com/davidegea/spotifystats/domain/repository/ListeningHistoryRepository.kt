@@ -17,7 +17,7 @@ interface ListeningHistoryRepository {
     fun observeOverviewStats(
         fromInclusive: Long,
         toInclusive: Long,
-    ): Flow<OverviewStats>
+    ): Flow<OverviewStats> = observeOverviewStats()
 
     fun observeTopTracks(
         fromInclusive: Long,
