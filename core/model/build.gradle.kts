@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "com.davidegea.spotifystats.model"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 24

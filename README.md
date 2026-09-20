@@ -71,7 +71,7 @@ See [docs/privacy.md](docs/privacy.md).
 Requirements:
 
 - JDK 17
-- Android SDK API 37
+- Android SDK API 36
 - Android Build Tools 36.0.0
 - Gradle 9.4.1
 
