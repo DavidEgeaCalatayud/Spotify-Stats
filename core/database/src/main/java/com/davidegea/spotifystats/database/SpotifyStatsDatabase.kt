@@ -17,14 +17,14 @@ import com.davidegea.spotifystats.database.entity.TrackEntity
 
 @Database(
     entities = [
-        TrackSearchEntity::class,
-        ArtistSearchEntity::class,
-        AlbumSearchEntity::class,
         AlbumEntity::class,
         ArtistEntity::class,
         TrackEntity::class,
         TrackArtistCrossRef::class,
         PlayEventEntity::class,
+        TrackSearchEntity::class,
+        ArtistSearchEntity::class,
+        AlbumSearchEntity::class,
     ],
     version = 2,
     exportSchema = true,

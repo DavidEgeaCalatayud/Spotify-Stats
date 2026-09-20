@@ -100,6 +100,7 @@ private fun AlbumDetailScreen(
             ) {
                 Text("Album history", style = MaterialTheme.typography.titleMedium)
                 Text("Different songs: " + detail.uniqueTracks)
+                Text("Peak month: ${detail.peakMonth ?: "—"}")
                 Text("First listened: " + formatDate(detail.firstPlayedAtEpochMs))
                 Text("Last listened: " + formatDate(detail.lastPlayedAtEpochMs))
             }

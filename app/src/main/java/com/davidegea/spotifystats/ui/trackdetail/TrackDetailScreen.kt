@@ -98,6 +98,11 @@ private fun TrackDetailScreen(
                 Text("First played: " + formatDate(detail.firstPlayedAtEpochMs))
                 Text("Last played: " + formatDate(detail.lastPlayedAtEpochMs))
                 Text("Skip rate: " + formatSkipRate(detail))
+                Text("Meaningful listens (≥30 s): ${detail.meaningfulPlays}")
+                Text("Average completion: " + (detail.averageCompletion?.let { String.format(Locale.getDefault(), "%.1f%%", it * 100) } ?: "Unknown track duration"))
+                if (detail.averageCompletion != null) Text("Completed (≥90%): ${detail.completedPlays}")
+                Text("Favourite local hour: " + (detail.favouriteHour?.let { String.format(Locale.getDefault(), "%02d:00", it) } ?: "—"))
+                Text("Longest listening streak: ${detail.longestStreakDays} consecutive days")
             }
         }
 

@@ -189,6 +189,7 @@ class LocalDataControlRepository(
             // Remove freed content from the DB and truncate the WAL after logical deletion.
             database.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
             database.openHelper.writableDatabase.execSQL("VACUUM")
+            File(context.cacheDir, "recaps").deleteRecursively()
         }
     }
 

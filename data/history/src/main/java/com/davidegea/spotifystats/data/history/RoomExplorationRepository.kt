@@ -74,6 +74,7 @@ class RoomExplorationRepository(
     }.flowOn(Dispatchers.IO)
 
     private fun changes() = database.invalidationTracker.createFlow("play_events", "tracks", "track_artists", "artists", "albums")
+        .debounce(250)
         .conflate()
 }
 

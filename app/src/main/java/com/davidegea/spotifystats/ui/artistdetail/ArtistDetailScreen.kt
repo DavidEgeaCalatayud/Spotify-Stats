@@ -90,6 +90,8 @@ private fun ArtistDetailScreen(
             ) {
                 Text("Artist history", style = MaterialTheme.typography.titleMedium)
                 Text("Different songs: " + detail.uniqueTracks)
+                Text("All-time artist rank: #${detail.allTimeRank}")
+                Text("Most active year: ${detail.mostActiveYear ?: "—"}")
                 Text("First heard: " + formatDate(detail.firstPlayedAtEpochMs))
                 Text("Last heard: " + formatDate(detail.lastPlayedAtEpochMs))
             }

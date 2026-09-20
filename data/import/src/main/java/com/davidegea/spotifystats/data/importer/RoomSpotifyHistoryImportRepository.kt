@@ -56,7 +56,7 @@ class RoomSpotifyHistoryImportRepository(
                         mimeType?.contains("zip", ignoreCase = true) == true
                     ) {
                         importZip(
-                            input = buffered,
+                            input = BoundedHistoryInputStream(buffered),
                             documentIndex = index,
                             totalDocuments = documents.size,
                             documentName = displayName,
@@ -65,7 +65,7 @@ class RoomSpotifyHistoryImportRepository(
                         )
                     } else {
                         importJsonStream(
-                            input = buffered,
+                            input = BoundedHistoryInputStream(buffered),
                             documentIndex = index,
                             totalDocuments = documents.size,
                             documentName = displayName,
@@ -109,13 +109,17 @@ class RoomSpotifyHistoryImportRepository(
         onProgress: suspend (ImportProgress) -> Unit,
     ) {
         ZipInputStream(input).use { zip ->
+            val bounded = BoundedHistoryInputStream(zip)
+            var entries = 0
             var entry = zip.nextEntry
             var foundJson = false
             while (entry != null) {
+                currentCoroutineContext().ensureActive()
+                require(++entries <= 10_000) { "Too many ZIP entries" }
                 if (!entry.isDirectory && entry.name.endsWith(".json", ignoreCase = true)) {
                     foundJson = true
                     importJsonStream(
-                        input = zip,
+                        input = bounded,
                         documentIndex = documentIndex,
                         totalDocuments = totalDocuments,
                         documentName = documentName + " / " + entry.name,

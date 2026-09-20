@@ -14,6 +14,11 @@ import com.davidegea.spotifystats.domain.model.TrackDetail
 import com.davidegea.spotifystats.domain.model.TrackRanking
 import com.davidegea.spotifystats.domain.model.YearlyListening
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.combine
+import com.davidegea.spotifystats.domain.analytics.DateRanges
+import java.util.TimeZone
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -127,7 +132,7 @@ class RoomListeningHistoryRepository(
         }
 
     override fun observeTrackDetail(trackId: Long): Flow<TrackDetail?> =
-        dao.observeTrackDetail(trackId).map { row ->
+        combine(dao.observeTrackDetail(trackId), dao.observeTrackDays(trackId)) { row, days ->
             row?.let {
                 TrackDetail(
                     id = it.id,
@@ -139,9 +144,14 @@ class RoomListeningHistoryRepository(
                     lastPlayedAtEpochMs = it.lastPlayedAtEpochMs,
                     skippedPlays = it.skippedPlays,
                     skipKnownPlays = it.skipKnownPlays,
+                    meaningfulPlays = it.meaningfulPlays,
+                    averageCompletion = it.averageCompletion,
+                    completedPlays = it.completedPlays,
+                    favouriteHour = it.favouriteHour,
+                    longestStreakDays = longestStreak(days),
                 )
             }
-        }
+        }.flowOn(Dispatchers.Default)
 
     override fun observeTrackListeningByYear(trackId: Long): Flow<List<YearlyListening>> =
         dao.observeTrackListeningByYear(trackId).map { rows ->
@@ -160,6 +170,7 @@ class RoomListeningHistoryRepository(
                 ArtistDetail(
                     id = it.id,
                     name = it.name,
+                    allTimeRank = it.allTimeRank, mostActiveYear = it.mostActiveYear,
                     totalPlays = it.totalPlays,
                     totalListeningMs = it.totalListeningMs,
                     uniqueTracks = it.uniqueTracks,
@@ -183,6 +194,7 @@ class RoomListeningHistoryRepository(
                 AlbumDetail(
                     id = it.id,
                     name = it.name,
+                    peakMonth = it.peakMonth,
                     artistName = it.artistName,
                     totalPlays = it.totalPlays,
                     totalListeningMs = it.totalListeningMs,
@@ -229,4 +241,17 @@ class RoomListeningHistoryRepository(
             plays = plays,
             listeningMs = listeningMs,
         )
+}
+
+private fun longestStreak(days: List<String>): Int {
+    var previous: Long? = null
+    var current = 0
+    var longest = 0
+    for (date in days) {
+        val day = DateRanges.parse(date, TimeZone.getTimeZone("UTC")) / 86_400_000L
+        current = if (previous != null && day == previous + 1) current + 1 else 1
+        longest = maxOf(longest, current)
+        previous = day
+    }
+    return longest
 }
