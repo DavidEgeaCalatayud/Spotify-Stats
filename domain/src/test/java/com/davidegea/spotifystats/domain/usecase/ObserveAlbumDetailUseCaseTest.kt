@@ -17,42 +17,43 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class ObserveArtistDetailUseCaseTest {
+class ObserveAlbumDetailUseCaseTest {
 
     @Test
-    fun combinesBaseDetailWithTopTracks() = runBlocking {
-        val topTracks = listOf(
+    fun combinesAlbumMetricsWithTopTracks() = runBlocking {
+        val tracks = listOf(
             TrackRanking(
-                id = 10,
+                id = 7,
                 name = "After Hours",
                 artistName = "The Weeknd",
                 plays = 621,
-                listeningMs = 10_000,
+                listeningMs = 50_000,
             ),
         )
-        val repository = ArtistFakeRepository(
-            artistDetail = ArtistDetail(
-                id = 4,
-                name = "The Weeknd",
-                totalPlays = 8421,
-                totalListeningMs = 100_000,
-                uniqueTracks = 148,
+        val repository = AlbumFakeRepository(
+            detail = AlbumDetail(
+                id = 2,
+                name = "After Hours",
+                artistName = "The Weeknd",
+                totalPlays = 1731,
+                totalListeningMs = 90_000,
+                uniqueTracks = 14,
                 firstPlayedAtEpochMs = 1,
                 lastPlayedAtEpochMs = 2,
             ),
-            topTracks = topTracks,
+            tracks = tracks,
         )
 
-        val result = ObserveArtistDetailUseCase(repository)(4).first()
+        val result = ObserveAlbumDetailUseCase(repository)(2).first()
 
-        assertEquals(topTracks, result?.topTracks)
-        assertEquals(148L, result?.uniqueTracks)
+        assertEquals(14L, result?.uniqueTracks)
+        assertEquals(tracks, result?.topTracks)
     }
 }
 
-private class ArtistFakeRepository(
-    private val artistDetail: ArtistDetail? = null,
-    private val topTracks: List<TrackRanking> = emptyList(),
+private class AlbumFakeRepository(
+    private val detail: AlbumDetail?,
+    private val tracks: List<TrackRanking>,
 ) : ListeningHistoryRepository {
     override fun observeOverviewStats(): Flow<OverviewStats> =
         flowOf(OverviewStats(0, 0, 0, 0))
@@ -80,19 +81,19 @@ private class ArtistFakeRepository(
     override fun observeTrackListeningByYear(trackId: Long): Flow<List<YearlyListening>> =
         flowOf(emptyList())
 
-    override fun observeArtistDetail(artistId: Long): Flow<ArtistDetail?> = flowOf(artistDetail)
+    override fun observeArtistDetail(artistId: Long): Flow<ArtistDetail?> = flowOf(null)
 
     override fun observeArtistTopTracks(
         artistId: Long,
         limit: Int,
-    ): Flow<List<TrackRanking>> = flowOf(topTracks.take(limit))
+    ): Flow<List<TrackRanking>> = flowOf(emptyList())
 
-    override fun observeAlbumDetail(albumId: Long): Flow<AlbumDetail?> = flowOf(null)
+    override fun observeAlbumDetail(albumId: Long): Flow<AlbumDetail?> = flowOf(detail)
 
     override fun observeAlbumTopTracks(
         albumId: Long,
         limit: Int,
-    ): Flow<List<TrackRanking>> = flowOf(emptyList())
+    ): Flow<List<TrackRanking>> = flowOf(tracks.take(limit))
 
     override fun observeListeningHistory(
         fromInclusive: Long,

@@ -10,8 +10,10 @@ import com.davidegea.spotifystats.database.dao.ListeningHistoryDao
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
 import com.davidegea.spotifystats.domain.repository.SpotifyHistoryImportRepository
 import com.davidegea.spotifystats.domain.usecase.ImportSpotifyHistoryUseCase
+import com.davidegea.spotifystats.domain.usecase.ObserveAlbumDetailUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveArtistDetailUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveLibraryRankingsUseCase
+import com.davidegea.spotifystats.domain.usecase.ObserveListeningHistoryUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveOverviewStatsUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveTrackDetailUseCase
 import dagger.Module
@@ -82,6 +84,16 @@ object AppModule {
     fun provideObserveArtistDetailUseCase(
         repository: ListeningHistoryRepository,
     ): ObserveArtistDetailUseCase = ObserveArtistDetailUseCase(repository)
+
+    @Provides
+    fun provideObserveAlbumDetailUseCase(
+        repository: ListeningHistoryRepository,
+    ): ObserveAlbumDetailUseCase = ObserveAlbumDetailUseCase(repository)
+
+    @Provides
+    fun provideObserveListeningHistoryUseCase(
+        repository: ListeningHistoryRepository,
+    ): ObserveListeningHistoryUseCase = ObserveListeningHistoryUseCase(repository)
 
     @Provides
     fun provideImportSpotifyHistoryUseCase(

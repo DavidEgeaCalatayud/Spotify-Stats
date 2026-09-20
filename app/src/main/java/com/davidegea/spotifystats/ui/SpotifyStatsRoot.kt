@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.davidegea.spotifystats.ui.albumdetail.AlbumDetailRoute
 import com.davidegea.spotifystats.ui.artistdetail.ArtistDetailRoute
 import com.davidegea.spotifystats.ui.home.HomeRoute
 import com.davidegea.spotifystats.ui.library.LibraryRoute
@@ -21,6 +22,7 @@ import com.davidegea.spotifystats.ui.trackdetail.TrackDetailRoute
 
 private const val TRACK_DETAIL_ROUTE = "track/{trackId}"
 private const val ARTIST_DETAIL_ROUTE = "artist/{artistId}"
+private const val ALBUM_DETAIL_ROUTE = "album/{albumId}"
 
 @Composable
 fun SpotifyStatsRoot() {
@@ -70,6 +72,9 @@ fun SpotifyStatsRoot() {
                     onArtistClick = { artistId ->
                         navController.navigate("artist/" + artistId)
                     },
+                    onAlbumClick = { albumId ->
+                        navController.navigate("album/" + albumId)
+                    },
                 )
             }
             composable(AppDestination.Insights.route) {
@@ -89,6 +94,14 @@ fun SpotifyStatsRoot() {
             }
             composable(ARTIST_DETAIL_ROUTE) {
                 ArtistDetailRoute(onBack = navController::navigateUp)
+            }
+            composable(ALBUM_DETAIL_ROUTE) {
+                AlbumDetailRoute(
+                    onBack = navController::navigateUp,
+                    onTrackClick = { trackId ->
+                        navController.navigate("track/" + trackId)
+                    },
+                )
             }
         }
     }
