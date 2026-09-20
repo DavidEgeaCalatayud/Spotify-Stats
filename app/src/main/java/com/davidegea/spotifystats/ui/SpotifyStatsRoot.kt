@@ -8,12 +8,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.davidegea.spotifystats.ui.home.HomeRoute
+import com.davidegea.spotifystats.ui.library.LibraryRoute
 import com.davidegea.spotifystats.ui.placeholder.PlaceholderScreen
 
 @Composable
@@ -53,10 +54,7 @@ fun SpotifyStatsRoot() {
                 HomeRoute()
             }
             composable(AppDestination.Library.route) {
-                PlaceholderScreen(
-                    title = "Library",
-                    body = "Songs, artists, albums and full listening history will live here.",
-                )
+                LibraryRoute()
             }
             composable(AppDestination.Insights.route) {
                 PlaceholderScreen(
@@ -67,7 +65,7 @@ fun SpotifyStatsRoot() {
             composable(AppDestination.You.route) {
                 PlaceholderScreen(
                     title = "You",
-                    body = "Imports, backups, privacy controls and optional Spotify sync will live here.",
+                    body = "Backups, privacy controls and optional Spotify sync will live here.",
                 )
             }
         }
