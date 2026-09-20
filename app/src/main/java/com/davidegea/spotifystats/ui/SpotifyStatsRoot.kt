@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.davidegea.spotifystats.ui.albumdetail.AlbumDetailRoute
 import com.davidegea.spotifystats.ui.artistdetail.ArtistDetailRoute
 import com.davidegea.spotifystats.ui.home.HomeRoute
+import com.davidegea.spotifystats.ui.insights.InsightsRoute
 import com.davidegea.spotifystats.ui.library.LibraryRoute
 import com.davidegea.spotifystats.ui.placeholder.PlaceholderScreen
 import com.davidegea.spotifystats.ui.trackdetail.TrackDetailRoute
@@ -88,10 +89,7 @@ fun SpotifyStatsRoot() {
                 )
             }
             composable(AppDestination.Insights.route) {
-                PlaceholderScreen(
-                    title = "Insights",
-                    body = "Trends, discoveries, obsessions, habits and Wrapped reports will live here.",
-                )
+                InsightsRoute()
             }
             composable(AppDestination.You.route) {
                 PlaceholderScreen(
