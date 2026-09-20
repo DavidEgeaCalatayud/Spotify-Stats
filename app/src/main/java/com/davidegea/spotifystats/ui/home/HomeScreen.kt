@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
 
 @Composable
 fun HomeRoute(
@@ -31,6 +34,7 @@ private fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -42,6 +46,8 @@ private fun HomeScreen(
             text = "Import your Spotify Extended Streaming History to unlock private, offline analytics.",
             style = MaterialTheme.typography.bodyLarge,
         )
+
+        ImportHistorySection()
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -85,7 +91,7 @@ private fun HomeScreen(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    text = "No account, backend or cloud database is required. Raw listening history will be stored in Room/SQLite and never uploaded by the app.",
+                    text = "No account, backend or cloud database is required. Raw listening history is stored in Room/SQLite and never uploaded by the app.",
                 )
             }
         }
