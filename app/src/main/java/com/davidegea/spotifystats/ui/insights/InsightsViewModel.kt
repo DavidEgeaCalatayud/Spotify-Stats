@@ -12,6 +12,7 @@ import com.davidegea.spotifystats.domain.model.AdvancedAnalytics
 import com.davidegea.spotifystats.domain.usecase.ExploreListeningUseCase
 import com.davidegea.spotifystats.domain.usecase.AnalyticsTimeRangeResolver
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -59,9 +60,9 @@ class InsightsViewModel @Inject constructor(
                     offlineRate = habits.offlineRate,
                     heatmap = habits.heatmap,
                 )
-            }
+            }.onStart { emit(InsightsUiState(period = selected, customRange = range)) }
+                .catch { emit(InsightsUiState(period = selected, customRange = range, loading = false, error = "Unable to calculate insights.")) }
         }
-        .catch { emit(InsightsUiState(loading = false, error = "Unable to calculate insights.")) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

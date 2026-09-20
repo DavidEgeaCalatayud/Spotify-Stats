@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.davidegea.spotifystats.domain.model.AdvancedAnalytics
@@ -12,13 +13,14 @@ import java.util.Locale
 
 @Composable
 fun AdvancedInsightsSection(data: AdvancedAnalytics, onTrack: (Long) -> Unit, onArtist: (Long) -> Unit) {
+    val locale = LocalConfiguration.current.locales[0]
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("What counts as a listen?", style = MaterialTheme.typography.titleLarge)
             Text("${data.quality.events} recorded events · ${data.quality.meaningful} listens of at least 30 seconds")
             if (data.quality.durationKnown > 0) {
                 Text("${data.quality.completed} completed (at least 90%) / ${data.quality.durationKnown} events with known track duration")
-                data.quality.averageCompletion?.let { Text("${String.format(Locale.getDefault(), "%.1f", it * 100)}% average completion") }
+                data.quality.averageCompletion?.let { Text("${String.format(locale, "%.1f", it * 100)}% average completion") }
             } else Text("Completion unavailable: the export does not contain track duration.")
         }
     }
@@ -31,7 +33,7 @@ fun AdvancedInsightsSection(data: AdvancedAnalytics, onTrack: (Long) -> Unit, on
         }
     }
     data.trend?.let { trend ->
-        val change = trend.change?.let { String.format(Locale.getDefault(), "%+.1f%%", it * 100) } ?: "No previous listening baseline"
+        val change = trend.change?.let { String.format(locale, "%+.1f%%", it * 100) } ?: "No previous listening baseline"
         Text("Trend: $change", style = MaterialTheme.typography.titleMedium)
         Text("${listeningTime(trend.currentMs)} versus ${listeningTime(trend.previousMs)} in the preceding interval of equal length. Missing imports can affect comparisons.")
     }

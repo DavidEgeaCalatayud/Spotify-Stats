@@ -64,9 +64,8 @@ class LibraryViewModel @Inject constructor(
                     albums = rankings.albums,
                     history = history,
                 )
-            }
+            }.catch { emit(LibraryUiState(period = selected, customRange = range, query = text, error = "Unable to load this selection.")) }
         }
-        .catch { emit(LibraryUiState(error = "Unable to load this selection.")) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

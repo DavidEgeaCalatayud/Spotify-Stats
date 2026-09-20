@@ -7,6 +7,7 @@ import com.davidegea.spotifystats.domain.usecase.ObserveHomeDashboardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import com.davidegea.spotifystats.domain.model.TimeRange
 import com.davidegea.spotifystats.domain.usecase.ExploreListeningUseCase
@@ -43,9 +44,9 @@ class HomeViewModel @Inject constructor(
                     topAlbum = dashboard.topAlbum,
                     recentActivity = dashboard.recentActivity,
                 )
-            }
+            }.onStart { emit(HomeUiState(period = selected, customRange = range)) }
+                .catch { emit(HomeUiState(period = selected, customRange = range, loading = false, error = "Unable to read listening history.")) }
         }
-        .catch { emit(HomeUiState(loading = false, error = "Unable to read listening history.")) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

@@ -53,7 +53,7 @@ The MVP foundation currently includes:
 - Kotlin + Jetpack Compose + Material 3
 - Clean Architecture / MVVM-oriented module boundaries
 - Hilt dependency injection
-- Room/SQLite schema v1
+- Room/SQLite schema v2 with a non-destructive v1 migration
 - normalized albums, artists, tracks and track-artists
 - deduplicated play events via a unique event hash
 - streaming JSON and ZIP import through Android's document picker
@@ -65,7 +65,12 @@ The MVP foundation currently includes:
 - four-destination navigation: Home / Library / Insights / You
 - GitHub Actions CI and Dependabot
 
-The next MVP slices are richer Home analytics, album detail, history browsing and search.
+The offline completion branch adds indexed global search, custom dates, a listening
+calendar, advanced highlights/session estimates, richer entity details, local Wrapped
+cards, and validated backup/restore/deletion. It keeps the four main destinations.
+
+See [the current audit](docs/audit-2026-09-20.md) for implemented features, verification
+and the remaining roadmap. **Spotify live sync and SQLCipher are not implemented.**
 
 ## Privacy model
 
@@ -85,7 +90,17 @@ Requirements:
 The repository includes the Gradle Wrapper pinned to Gradle 9.4.1 with distribution checksum verification.
 
 ```bash
-./gradlew   :domain:testDebugUnitTest   :data:import:testDebugUnitTest   :app:lintDebug   :app:testDebugUnitTest   :app:assembleDebug
+./gradlew :domain:testDebugUnitTest :core:database:testDebugUnitTest \
+  :data:import:testDebugUnitTest :data:history:testDebugUnitTest \
+  :data:privacy:testDebugUnitTest :app:testDebugUnitTest \
+  :app:lintDebug :app:assembleDebug
+```
+
+The CI uploads `spotify-stats-debug` (APK) and `verification-reports` (tests, lint,
+Room schemas and the generated sample share card). A reproducible desktop SQL check:
+
+```bash
+python scripts/benchmark_sql.py --events 300000
 ```
 
 ## Roadmap

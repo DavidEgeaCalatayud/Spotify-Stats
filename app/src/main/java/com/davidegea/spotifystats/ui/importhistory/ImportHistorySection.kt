@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
@@ -43,6 +44,8 @@ fun ImportHistorySection(
                 style = MaterialTheme.typography.bodyMedium,
             )
 
+            Text("Request Extended streaming history from the Privacy settings of your Spotify account, then import the downloaded ZIP or audio JSON files. Regular account exports and podcasts are not supported.", style = MaterialTheme.typography.bodySmall)
+
             when (val current = state) {
                 ImportHistoryUiState.Idle -> Unit
                 is ImportHistoryUiState.Importing -> {
@@ -68,6 +71,9 @@ fun ImportHistorySection(
                             " duplicates ignored · " + current.summary.skippedRecords +
                             " unsupported/invalid rows",
                     )
+                    if (current.summary.insertedEvents == 0L && current.summary.duplicateEvents == 0L) {
+                        Text("No supported music events found. Check that you selected Extended Streaming History audio files.")
+                    }
                     if (current.summary.failedDocuments > 0) {
                         Text(
                             text = current.summary.failedDocuments.toString() +
@@ -84,6 +90,7 @@ fun ImportHistorySection(
                 }
             }
 
+            if (state is ImportHistoryUiState.Importing) TextButton(onClick = viewModel::cancelImport) { Text("Cancel import") }
             Button(
                 onClick = {
                     launcher.launch(
