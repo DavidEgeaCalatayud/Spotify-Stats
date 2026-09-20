@@ -38,4 +38,5 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Verify
-        run: ./gradlew --no-daemon :app:lintDebug :app:testDebugUnitTest :app:assembleDebug
+        run: |
+          ./gradlew --no-daemon             :domain:testDebugUnitTest             :data:import:testDebugUnitTest             :app:lintDebug             :app:testDebugUnitTest             :app:assembleDebug

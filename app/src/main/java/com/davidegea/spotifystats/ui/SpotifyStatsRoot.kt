@@ -13,34 +13,43 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.davidegea.spotifystats.ui.artistdetail.ArtistDetailRoute
 import com.davidegea.spotifystats.ui.home.HomeRoute
 import com.davidegea.spotifystats.ui.library.LibraryRoute
 import com.davidegea.spotifystats.ui.placeholder.PlaceholderScreen
+import com.davidegea.spotifystats.ui.trackdetail.TrackDetailRoute
+
+private const val TRACK_DETAIL_ROUTE = "track/{trackId}"
+private const val ARTIST_DETAIL_ROUTE = "artist/{artistId}"
 
 @Composable
 fun SpotifyStatsRoot() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val topLevelRoutes = AppDestination.entries.map { it.route }.toSet()
+    val showBottomBar = currentRoute in topLevelRoutes
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                AppDestination.entries.forEach { destination ->
-                    NavigationBarItem(
-                        selected = currentRoute == destination.route,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            if (showBottomBar) {
+                NavigationBar {
+                    AppDestination.entries.forEach { destination ->
+                        NavigationBarItem(
+                            selected = currentRoute == destination.route,
+                            onClick = {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Text(destination.label.take(1)) },
-                        label = { Text(destination.label) },
-                    )
+                            },
+                            icon = { Text(destination.label.take(1)) },
+                            label = { Text(destination.label) },
+                        )
+                    }
                 }
             }
         },
@@ -54,7 +63,14 @@ fun SpotifyStatsRoot() {
                 HomeRoute()
             }
             composable(AppDestination.Library.route) {
-                LibraryRoute()
+                LibraryRoute(
+                    onTrackClick = { trackId ->
+                        navController.navigate("track/" + trackId)
+                    },
+                    onArtistClick = { artistId ->
+                        navController.navigate("artist/" + artistId)
+                    },
+                )
             }
             composable(AppDestination.Insights.route) {
                 PlaceholderScreen(
@@ -67,6 +83,12 @@ fun SpotifyStatsRoot() {
                     title = "You",
                     body = "Backups, privacy controls and optional Spotify sync will live here.",
                 )
+            }
+            composable(TRACK_DETAIL_ROUTE) {
+                TrackDetailRoute(onBack = navController::navigateUp)
+            }
+            composable(ARTIST_DETAIL_ROUTE) {
+                ArtistDetailRoute(onBack = navController::navigateUp)
             }
         }
     }

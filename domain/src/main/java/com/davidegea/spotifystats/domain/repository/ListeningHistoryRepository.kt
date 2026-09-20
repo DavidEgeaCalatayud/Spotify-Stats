@@ -1,9 +1,12 @@
 package com.davidegea.spotifystats.domain.repository
 
 import com.davidegea.spotifystats.domain.model.AlbumRanking
+import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
 import com.davidegea.spotifystats.domain.model.OverviewStats
+import com.davidegea.spotifystats.domain.model.TrackDetail
 import com.davidegea.spotifystats.domain.model.TrackRanking
+import com.davidegea.spotifystats.domain.model.YearlyListening
 import kotlinx.coroutines.flow.Flow
 
 interface ListeningHistoryRepository {
@@ -26,4 +29,15 @@ interface ListeningHistoryRepository {
         toInclusive: Long,
         limit: Int,
     ): Flow<List<AlbumRanking>>
+
+    fun observeTrackDetail(trackId: Long): Flow<TrackDetail?>
+
+    fun observeTrackListeningByYear(trackId: Long): Flow<List<YearlyListening>>
+
+    fun observeArtistDetail(artistId: Long): Flow<ArtistDetail?>
+
+    fun observeArtistTopTracks(
+        artistId: Long,
+        limit: Int,
+    ): Flow<List<TrackRanking>>
 }
