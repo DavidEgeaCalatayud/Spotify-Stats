@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":data:history"))
     implementation(project(":data:import"))
+    implementation(project(":data:privacy"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

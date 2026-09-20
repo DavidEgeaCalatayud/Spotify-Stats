@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.davidegea.spotifystats.data.history"
+    namespace = "com.davidegea.spotifystats.data.privacy"
     compileSdk = 36
 
     defaultConfig {

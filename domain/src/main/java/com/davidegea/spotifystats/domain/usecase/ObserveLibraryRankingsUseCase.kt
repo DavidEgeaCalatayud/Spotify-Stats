@@ -1,5 +1,6 @@
 package com.davidegea.spotifystats.domain.usecase
 
+import com.davidegea.spotifystats.domain.model.TimeRange
 import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.model.LibraryRankings
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
@@ -13,8 +14,9 @@ class ObserveLibraryRankingsUseCase(
     operator fun invoke(
         period: AnalyticsPeriod,
         limit: Int = DEFAULT_LIMIT,
+        customRange: TimeRange? = null,
     ): Flow<LibraryRankings> {
-        val range = rangeResolver.resolve(period)
+        val range = customRange ?: rangeResolver.resolve(period)
 
         return combine(
             repository.observeTopTracks(range.fromInclusive, range.toInclusive, limit),

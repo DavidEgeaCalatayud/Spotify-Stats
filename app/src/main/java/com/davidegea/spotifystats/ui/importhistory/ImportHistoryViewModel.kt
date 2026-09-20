@@ -1,5 +1,6 @@
 package com.davidegea.spotifystats.ui.importhistory
 
+import kotlinx.coroutines.CancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.davidegea.spotifystats.domain.model.ImportDocument
@@ -29,7 +30,8 @@ class ImportHistoryViewModel @Inject constructor(
     val uiState: StateFlow<ImportHistoryUiState> = _uiState.asStateFlow()
 
     fun importDocuments(uriStrings: List<String>) {
-        if (uriStrings.isEmpty()) return
+        if (uriStrings.isEmpty() || _uiState.value is ImportHistoryUiState.Importing) return
+        _uiState.value = ImportHistoryUiState.Importing(ImportProgress(0, uriStrings.size, null, 0, 0, 0, 0))
 
         viewModelScope.launch {
             val documents = uriStrings.distinct().map(::ImportDocument)
@@ -38,6 +40,8 @@ class ImportHistoryViewModel @Inject constructor(
                     _uiState.value = ImportHistoryUiState.Importing(progress)
                 }
                 _uiState.value = ImportHistoryUiState.Complete(summary)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (error: Exception) {
                 _uiState.value = ImportHistoryUiState.Failed(
                     error.message ?: "Import failed",

@@ -3,6 +3,8 @@ package com.davidegea.spotifystats.domain.model
 enum class AnalyticsPeriod(
     val label: String,
 ) {
+    TODAY("Today"),
+    LAST_6_MONTHS("6 months"),
     LAST_7_DAYS("7 days"),
     LAST_30_DAYS("30 days"),
     THIS_YEAR("This year"),

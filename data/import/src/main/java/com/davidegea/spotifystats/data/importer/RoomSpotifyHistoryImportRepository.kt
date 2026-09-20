@@ -19,6 +19,11 @@ import com.davidegea.spotifystats.model.PlaySource
 import java.io.BufferedInputStream
 import java.io.InputStream
 import java.util.zip.ZipInputStream
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.withLock
+import com.davidegea.spotifystats.database.DatabaseOperationGate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
@@ -35,12 +40,15 @@ class RoomSpotifyHistoryImportRepository(
         documents: List<ImportDocument>,
         onProgress: suspend (ImportProgress) -> Unit,
     ): ImportSummary = withContext(Dispatchers.IO) {
+        DatabaseOperationGate.mutex.withLock {
         val counters = Counters(sourceDocuments = documents.size)
 
         documents.forEachIndexed { index, document ->
             val uri = Uri.parse(document.uri)
-            val displayName = queryDisplayName(uri)
+            var displayName = "Spotify history"
             try {
+                currentCoroutineContext().ensureActive()
+                displayName = queryDisplayName(uri)
                 context.contentResolver.openInputStream(uri)?.use { rawStream ->
                     val buffered = BufferedInputStream(rawStream)
                     val mimeType = context.contentResolver.getType(uri)
@@ -66,6 +74,8 @@ class RoomSpotifyHistoryImportRepository(
                         )
                     }
                 } ?: error("Unable to open selected document")
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (_: Exception) {
                 counters.failedDocuments++
             }
@@ -87,6 +97,7 @@ class RoomSpotifyHistoryImportRepository(
             skippedRecords = counters.skippedRecords,
             failedDocuments = counters.failedDocuments,
         )
+        }
     }
 
     private suspend fun importZip(
@@ -133,6 +144,7 @@ class RoomSpotifyHistoryImportRepository(
 
         try {
             for (record in parser.parse(input)) {
+                currentCoroutineContext().ensureActive()
                 counters.processedRecords++
 
                 val normalized = normalizer.normalize(record)
@@ -169,6 +181,8 @@ class RoomSpotifyHistoryImportRepository(
         batch: List<NormalizedPlay>,
         counters: Counters,
     ) {
+        var inserted = 0L
+        var duplicate = 0L
         database.withTransaction {
             for (play in batch) {
                 val artistId = resolveArtist(play)
@@ -202,12 +216,14 @@ class RoomSpotifyHistoryImportRepository(
                 )
 
                 if (insertedId == -1L) {
-                    counters.duplicateEvents++
+                    duplicate++
                 } else {
-                    counters.insertedEvents++
+                    inserted++
                 }
             }
         }
+        counters.insertedEvents += inserted
+        counters.duplicateEvents += duplicate
     }
 
     private suspend fun resolveArtist(play: NormalizedPlay): Long {

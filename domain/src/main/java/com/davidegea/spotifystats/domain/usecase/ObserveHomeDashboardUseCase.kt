@@ -1,5 +1,6 @@
 package com.davidegea.spotifystats.domain.usecase
 
+import com.davidegea.spotifystats.domain.model.TimeRange
 import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.model.HomeDashboard
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
@@ -11,8 +12,8 @@ class ObserveHomeDashboardUseCase(
     private val rangeResolver: AnalyticsTimeRangeResolver = AnalyticsTimeRangeResolver(),
 ) {
 
-    operator fun invoke(period: AnalyticsPeriod): Flow<HomeDashboard> {
-        val range = rangeResolver.resolve(period)
+    operator fun invoke(period: AnalyticsPeriod, customRange: TimeRange? = null): Flow<HomeDashboard> {
+        val range = customRange ?: rangeResolver.resolve(period)
 
         val topEntities = combine(
             repository.observeTopTracks(

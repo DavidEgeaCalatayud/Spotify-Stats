@@ -8,6 +8,10 @@ import com.davidegea.spotifystats.domain.model.TrackRanking
 
 data class HomeUiState(
     val period: AnalyticsPeriod = AnalyticsPeriod.LAST_30_DAYS,
+    val customRange: com.davidegea.spotifystats.domain.model.TimeRange? = null,
+    val daily: List<com.davidegea.spotifystats.domain.model.DailyListening> = emptyList(),
+    val loading: Boolean = true,
+    val error: String? = null,
     val totalPlays: Long = 0,
     val totalListeningMs: Long = 0,
     val uniqueTracks: Long = 0,

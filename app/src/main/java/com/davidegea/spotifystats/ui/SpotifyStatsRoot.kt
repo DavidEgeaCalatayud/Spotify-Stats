@@ -18,7 +18,9 @@ import com.davidegea.spotifystats.ui.artistdetail.ArtistDetailRoute
 import com.davidegea.spotifystats.ui.home.HomeRoute
 import com.davidegea.spotifystats.ui.insights.InsightsRoute
 import com.davidegea.spotifystats.ui.library.LibraryRoute
-import com.davidegea.spotifystats.ui.placeholder.PlaceholderScreen
+import com.davidegea.spotifystats.ui.you.YouRoute
+import com.davidegea.spotifystats.ui.calendar.CalendarRoute
+import com.davidegea.spotifystats.ui.wrapped.WrappedRoute
 import com.davidegea.spotifystats.ui.trackdetail.TrackDetailRoute
 
 private const val TRACK_DETAIL_ROUTE = "track/{trackId}"
@@ -89,14 +91,19 @@ fun SpotifyStatsRoot() {
                 )
             }
             composable(AppDestination.Insights.route) {
-                InsightsRoute()
-            }
-            composable(AppDestination.You.route) {
-                PlaceholderScreen(
-                    title = "You",
-                    body = "Backups, privacy controls and optional Spotify sync will live here.",
+                InsightsRoute(
+                    onTrack = { navController.navigate("track/$it") },
+                    onArtist = { navController.navigate("artist/$it") },
+                    onCalendar = { navController.navigate("calendar") },
                 )
             }
+            composable(AppDestination.You.route) {
+                YouRoute(onWrapped = { navController.navigate("wrapped") }, onCalendar = { navController.navigate("calendar") })
+            }
+            composable("calendar") {
+                CalendarRoute(onBack = { navController.navigateUp() }, onTrack = { navController.navigate("track/$it") }, onArtist = { navController.navigate("artist/$it") })
+            }
+            composable("wrapped") { WrappedRoute(onBack = { navController.navigateUp() }) }
             composable(TRACK_DETAIL_ROUTE) {
                 TrackDetailRoute(onBack = navController::navigateUp)
             }
