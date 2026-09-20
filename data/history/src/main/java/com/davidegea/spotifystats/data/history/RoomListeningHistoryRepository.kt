@@ -5,8 +5,11 @@ import com.davidegea.spotifystats.domain.model.AlbumDetail
 import com.davidegea.spotifystats.domain.model.AlbumRanking
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
+import com.davidegea.spotifystats.domain.model.HourlyListening
+import com.davidegea.spotifystats.domain.model.ListeningHeatmapCell
 import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
 import com.davidegea.spotifystats.domain.model.OverviewStats
+import com.davidegea.spotifystats.domain.model.PlaybackBehaviorStats
 import com.davidegea.spotifystats.domain.model.TrackDetail
 import com.davidegea.spotifystats.domain.model.TrackRanking
 import com.davidegea.spotifystats.domain.model.YearlyListening
@@ -34,6 +37,50 @@ class RoomListeningHistoryRepository(
                 totalListeningMs = row.totalListeningMs,
                 uniqueTracks = row.uniqueTracks,
                 uniqueArtists = row.uniqueArtists,
+            )
+        }
+
+    override fun observeHourlyListening(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<List<HourlyListening>> =
+        dao.observeHourlyListening(fromInclusive, toInclusive).map { rows ->
+            rows.map { row ->
+                HourlyListening(
+                    hour = row.hour,
+                    plays = row.plays,
+                    listeningMs = row.listeningMs,
+                )
+            }
+        }
+
+    override fun observeListeningHeatmap(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<List<ListeningHeatmapCell>> =
+        dao.observeListeningHeatmap(fromInclusive, toInclusive).map { rows ->
+            rows.map { row ->
+                ListeningHeatmapCell(
+                    weekday = row.weekday,
+                    hour = row.hour,
+                    plays = row.plays,
+                    listeningMs = row.listeningMs,
+                )
+            }
+        }
+
+    override fun observePlaybackBehavior(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<PlaybackBehaviorStats> =
+        dao.observePlaybackBehavior(fromInclusive, toInclusive).map { row ->
+            PlaybackBehaviorStats(
+                skippedEvents = row.skippedEvents,
+                skipKnownEvents = row.skipKnownEvents,
+                shuffleEvents = row.shuffleEvents,
+                shuffleKnownEvents = row.shuffleKnownEvents,
+                offlineEvents = row.offlineEvents,
+                offlineKnownEvents = row.offlineKnownEvents,
             )
         }
 

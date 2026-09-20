@@ -51,6 +51,39 @@ data class HomeDashboard(
     val recentActivity: List<ListeningHistoryItem>,
 )
 
+data class HourlyListening(
+    val hour: Int,
+    val plays: Long,
+    val listeningMs: Long,
+)
+
+data class ListeningHeatmapCell(
+    val weekday: Int,
+    val hour: Int,
+    val plays: Long,
+    val listeningMs: Long,
+)
+
+data class PlaybackBehaviorStats(
+    val skippedEvents: Long = 0,
+    val skipKnownEvents: Long = 0,
+    val shuffleEvents: Long = 0,
+    val shuffleKnownEvents: Long = 0,
+    val offlineEvents: Long = 0,
+    val offlineKnownEvents: Long = 0,
+)
+
+data class ListeningHabits(
+    val favouriteHour: Int?,
+    val favouriteWeekday: Int?,
+    val morningShare: Double?,
+    val nightShare: Double?,
+    val skipRate: Double?,
+    val shuffleRate: Double?,
+    val offlineRate: Double?,
+    val heatmap: List<ListeningHeatmapCell>,
+)
+
 data class YearlyListening(
     val year: Int,
     val plays: Long,
