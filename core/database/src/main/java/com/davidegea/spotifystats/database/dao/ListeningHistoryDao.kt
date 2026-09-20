@@ -34,6 +34,34 @@ data class AlbumRankingRow(
     val listeningMs: Long,
 )
 
+data class TrackDetailRow(
+    val id: Long,
+    val name: String,
+    val artistName: String?,
+    val totalPlays: Long,
+    val totalListeningMs: Long,
+    val firstPlayedAtEpochMs: Long?,
+    val lastPlayedAtEpochMs: Long?,
+    val skippedPlays: Long,
+    val skipKnownPlays: Long,
+)
+
+data class ArtistDetailRow(
+    val id: Long,
+    val name: String,
+    val totalPlays: Long,
+    val totalListeningMs: Long,
+    val uniqueTracks: Long,
+    val firstPlayedAtEpochMs: Long?,
+    val lastPlayedAtEpochMs: Long?,
+)
+
+data class YearlyListeningRow(
+    val year: Int,
+    val plays: Long,
+    val listeningMs: Long,
+)
+
 @Dao
 interface ListeningHistoryDao {
 
@@ -137,4 +165,87 @@ interface ListeningHistoryDao {
         toInclusive: Long,
         limit: Int,
     ): Flow<List<AlbumRankingRow>>
+
+    @Query(
+        """
+        SELECT
+            t.id AS id,
+            t.name AS name,
+            (
+                SELECT a.name
+                FROM track_artists ta
+                INNER JOIN artists a ON a.id = ta.artist_id
+                WHERE ta.track_id = t.id
+                ORDER BY ta.position ASC
+                LIMIT 1
+            ) AS artistName,
+            COUNT(pe.id) AS totalPlays,
+            COALESCE(SUM(pe.ms_played), 0) AS totalListeningMs,
+            MIN(pe.played_at) AS firstPlayedAtEpochMs,
+            MAX(pe.played_at) AS lastPlayedAtEpochMs,
+            COALESCE(SUM(CASE WHEN pe.skipped = 1 THEN 1 ELSE 0 END), 0) AS skippedPlays,
+            COALESCE(SUM(CASE WHEN pe.skipped IS NOT NULL THEN 1 ELSE 0 END), 0) AS skipKnownPlays
+        FROM tracks t
+        LEFT JOIN play_events pe ON pe.track_id = t.id
+        WHERE t.id = :trackId
+        GROUP BY t.id, t.name
+        """,
+    )
+    fun observeTrackDetail(trackId: Long): Flow<TrackDetailRow?>
+
+    @Query(
+        """
+        SELECT
+            CAST(strftime('%Y', played_at / 1000, 'unixepoch') AS INTEGER) AS year,
+            COUNT(*) AS plays,
+            COALESCE(SUM(ms_played), 0) AS listeningMs
+        FROM play_events
+        WHERE track_id = :trackId
+        GROUP BY year
+        ORDER BY year ASC
+        """,
+    )
+    fun observeTrackListeningByYear(trackId: Long): Flow<List<YearlyListeningRow>>
+
+    @Query(
+        """
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            COUNT(pe.id) AS totalPlays,
+            COALESCE(SUM(pe.ms_played), 0) AS totalListeningMs,
+            COUNT(DISTINCT CASE WHEN pe.id IS NOT NULL THEN ta.track_id END) AS uniqueTracks,
+            MIN(pe.played_at) AS firstPlayedAtEpochMs,
+            MAX(pe.played_at) AS lastPlayedAtEpochMs
+        FROM artists a
+        LEFT JOIN track_artists ta ON ta.artist_id = a.id
+        LEFT JOIN play_events pe ON pe.track_id = ta.track_id
+        WHERE a.id = :artistId
+        GROUP BY a.id, a.name
+        """,
+    )
+    fun observeArtistDetail(artistId: Long): Flow<ArtistDetailRow?>
+
+    @Query(
+        """
+        SELECT
+            t.id AS id,
+            t.name AS name,
+            a.name AS artistName,
+            COUNT(pe.id) AS plays,
+            COALESCE(SUM(pe.ms_played), 0) AS listeningMs
+        FROM track_artists selected
+        INNER JOIN artists a ON a.id = selected.artist_id
+        INNER JOIN tracks t ON t.id = selected.track_id
+        INNER JOIN play_events pe ON pe.track_id = t.id
+        WHERE selected.artist_id = :artistId
+        GROUP BY t.id, t.name, a.name
+        ORDER BY plays DESC, listeningMs DESC, t.name COLLATE NOCASE ASC
+        LIMIT :limit
+        """,
+    )
+    fun observeArtistTopTracks(
+        artistId: Long,
+        limit: Int,
+    ): Flow<List<TrackRankingRow>>
 }

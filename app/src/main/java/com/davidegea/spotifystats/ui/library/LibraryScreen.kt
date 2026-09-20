@@ -1,5 +1,6 @@
 package com.davidegea.spotifystats.ui.library
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,8 @@ private enum class LibrarySection(
 
 @Composable
 fun LibraryRoute(
+    onTrackClick: (Long) -> Unit,
+    onArtistClick: (Long) -> Unit,
     viewModel: LibraryViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -95,6 +98,7 @@ fun LibraryRoute(
                         subtitle = item.artistName,
                         plays = item.plays,
                         listeningMs = item.listeningMs,
+                        onClick = { onTrackClick(item.id) },
                     )
                 }
 
@@ -108,6 +112,7 @@ fun LibraryRoute(
                         subtitle = null,
                         plays = item.plays,
                         listeningMs = item.listeningMs,
+                        onClick = { onArtistClick(item.id) },
                     )
                 }
 
@@ -135,10 +140,18 @@ private fun RankingRow(
     subtitle: String?,
     plays: Long,
     listeningMs: Long,
+    onClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                },
+            )
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {

@@ -38,6 +38,9 @@ app
  |-- data:history
  |    |-- domain
  |    \-- core:database
+ |-- data:import
+ |    |-- domain
+ |    \-- core:database
  \-- core:database
 ```
 
@@ -45,7 +48,7 @@ The UI follows **UI -> ViewModel -> UseCase -> Repository -> Room/import/API**. 
 
 ## Current status
 
-The initial foundation includes:
+The MVP foundation currently includes:
 
 - Kotlin + Jetpack Compose + Material 3
 - Clean Architecture / MVVM-oriented module boundaries
@@ -53,16 +56,20 @@ The initial foundation includes:
 - Room/SQLite schema v1
 - normalized albums, artists, tracks and track-artists
 - deduplicated play events via a unique event hash
-- indices for time-series analytics
+- streaming JSON and ZIP import through Android's document picker
+- import progress and import summary
+- indexed track, artist and album rankings
+- 7-day, 30-day, current-year and all-time filters
+- track drill-down metrics with yearly listening history
+- artist drill-down metrics with top-song rankings
 - four-destination navigation: Home / Library / Insights / You
-- a Room-backed Home overview pipeline
 - GitHub Actions CI and Dependabot
 
-The import engine is the next implementation slice.
+The next MVP slices are richer Home analytics, album detail, history browsing and search.
 
 ## Privacy model
 
-Spotify exports can contain fields that are not required for analytics. **IP addresses and user-agent values are intentionally absent from the database schema.** The application should parse only the minimum fields needed for product functionality.
+Spotify exports can contain fields that are not required for analytics. **IP addresses and user-agent values are intentionally absent from the database schema.** The application parses only the minimum fields needed for product functionality.
 
 See [docs/privacy.md](docs/privacy.md).
 
@@ -78,7 +85,7 @@ Requirements:
 The repository includes the Gradle Wrapper pinned to Gradle 9.4.1 with distribution checksum verification.
 
 ```bash
-./gradlew :app:lintDebug :app:testDebugUnitTest :app:assembleDebug
+./gradlew   :domain:testDebugUnitTest   :data:import:testDebugUnitTest   :app:lintDebug   :app:testDebugUnitTest   :app:assembleDebug
 ```
 
 ## Roadmap
