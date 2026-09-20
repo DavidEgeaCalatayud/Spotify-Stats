@@ -11,12 +11,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.davidegea.spotifystats.ui.components.isoDate
 import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
 
 @Composable
-fun YouRoute(onWrapped: () -> Unit, onCalendar: () -> Unit, viewModel: YouViewModel = viewModel()) {
+fun YouRoute(onWrapped: () -> Unit, onCalendar: () -> Unit, viewModel: YouViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var pendingRestore by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }

@@ -127,6 +127,8 @@ class RoomSpotifyHistoryImportRepository(
                         onProgress = onProgress,
                     )
                 }
+                val drain = ByteArray(8192)
+                while (bounded.read(drain) != -1) currentCoroutineContext().ensureActive()
                 zip.closeEntry()
                 entry = zip.nextEntry
             }

@@ -22,7 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.model.ListeningHeatmapCell
 import java.text.DateFormatSymbols
@@ -33,7 +33,7 @@ fun InsightsRoute(
     onTrack: (Long) -> Unit,
     onArtist: (Long) -> Unit,
     onCalendar: () -> Unit,
-    viewModel: InsightsViewModel = viewModel(),
+    viewModel: InsightsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 

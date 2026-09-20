@@ -18,7 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.davidegea.spotifystats.domain.model.AlbumDetail
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -28,7 +28,7 @@ import java.util.Locale
 fun AlbumDetailRoute(
     onBack: () -> Unit,
     onTrackClick: (Long) -> Unit,
-    viewModel: AlbumDetailViewModel = viewModel(),
+    viewModel: AlbumDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 

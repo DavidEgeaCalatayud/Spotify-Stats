@@ -190,6 +190,7 @@ class LocalDataControlRepository(
             database.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
             database.openHelper.writableDatabase.execSQL("VACUUM")
             File(context.cacheDir, "recaps").deleteRecursively()
+            Unit
         }
     }
 

@@ -11,7 +11,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.davidegea.spotifystats.domain.model.DailyListening
 import com.davidegea.spotifystats.ui.components.listeningTime
 import java.text.DateFormatSymbols
@@ -19,7 +19,7 @@ import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun CalendarRoute(onBack: () -> Unit, onTrack: (Long) -> Unit, onArtist: (Long) -> Unit, viewModel: CalendarViewModel = viewModel()) {
+fun CalendarRoute(onBack: () -> Unit, onTrack: (Long) -> Unit, onArtist: (Long) -> Unit, viewModel: CalendarViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val selected by viewModel.selectedDay.collectAsStateWithLifecycle()
     val detail by viewModel.detail.collectAsStateWithLifecycle()
