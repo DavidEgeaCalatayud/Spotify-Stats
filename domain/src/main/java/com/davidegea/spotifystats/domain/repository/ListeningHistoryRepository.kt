@@ -14,6 +14,11 @@ import kotlinx.coroutines.flow.Flow
 interface ListeningHistoryRepository {
     fun observeOverviewStats(): Flow<OverviewStats>
 
+    fun observeOverviewStats(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<OverviewStats> = observeOverviewStats()
+
     fun observeTopTracks(
         fromInclusive: Long,
         toInclusive: Long,

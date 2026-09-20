@@ -1,5 +1,7 @@
 package com.davidegea.spotifystats.ui.home
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,19 +20,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.davidegea.spotifystats.domain.model.AlbumRanking
+import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
+import com.davidegea.spotifystats.domain.model.ArtistRanking
+import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
+import com.davidegea.spotifystats.domain.model.TrackRanking
 import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun HomeRoute(
+    onTrackClick: (Long) -> Unit,
+    onArtistClick: (Long) -> Unit,
+    onAlbumClick: (Long) -> Unit,
     viewModel: HomeViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(state)
+    HomeScreen(
+        state = state,
+        onPeriodSelected = viewModel::selectPeriod,
+        onTrackClick = onTrackClick,
+        onArtistClick = onArtistClick,
+        onAlbumClick = onAlbumClick,
+    )
 }
 
 @Composable
 private fun HomeScreen(
     state: HomeUiState,
+    onPeriodSelected: (AnalyticsPeriod) -> Unit,
+    onTrackClick: (Long) -> Unit,
+    onArtistClick: (Long) -> Unit,
+    onAlbumClick: (Long) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -39,15 +62,24 @@ private fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "Your listening, only on this device",
-            style = MaterialTheme.typography.headlineSmall,
+            text = "Your listening",
+            style = MaterialTheme.typography.headlineMedium,
         )
         Text(
-            text = "Import your Spotify Extended Streaming History to unlock private, offline analytics.",
+            text = "Private, offline analytics from the history stored on this device.",
             style = MaterialTheme.typography.bodyLarge,
         )
 
-        ImportHistorySection()
+        PeriodSelector(
+            selected = state.period,
+            onSelected = onPeriodSelected,
+        )
+
+        if (state.totalPlays == 0L) {
+            EmptyDashboard()
+            ImportHistorySection()
+            return@Column
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -81,19 +113,202 @@ private fun HomeScreen(
             )
         }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = "Local-first by design",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = "No account, backend or cloud database is required. Raw listening history is stored in Room/SQLite and never uploaded by the app.",
+        state.topTrack?.let { track ->
+            TrackTopCard(
+                item = track,
+                onClick = { onTrackClick(track.id) },
+            )
+        }
+
+        state.topArtist?.let { artist ->
+            ArtistTopCard(
+                item = artist,
+                onClick = { onArtistClick(artist.id) },
+            )
+        }
+
+        state.topAlbum?.let { album ->
+            AlbumTopCard(
+                item = album,
+                onClick = { onAlbumClick(album.id) },
+            )
+        }
+
+        if (state.recentActivity.isNotEmpty()) {
+            Text(
+                text = "Recent activity",
+                style = MaterialTheme.typography.titleLarge,
+            )
+            state.recentActivity.forEach { item ->
+                RecentActivityRow(
+                    item = item,
+                    onClick = { onTrackClick(item.trackId) },
                 )
             }
+        }
+
+        Text(
+            text = "Import more history",
+            style = MaterialTheme.typography.titleLarge,
+        )
+        ImportHistorySection()
+    }
+}
+
+@Composable
+private fun PeriodSelector(
+    selected: AnalyticsPeriod,
+    onSelected: (AnalyticsPeriod) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AnalyticsPeriod.entries.forEach { period ->
+            FilterChip(
+                selected = selected == period,
+                onClick = { onSelected(period) },
+                label = { Text(period.label) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyDashboard() {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "No listening data in this period",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = "Choose another period or import your Spotify Extended Streaming History. Your files are processed locally on this device.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TrackTopCard(
+    item: TrackRanking,
+    onClick: () -> Unit,
+) {
+    TopEntityCard(
+        eyebrow = "Top song",
+        title = item.name,
+        subtitle = item.artistName,
+        footer = item.plays.toString() + " plays · " + formatListeningTime(item.listeningMs),
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun ArtistTopCard(
+    item: ArtistRanking,
+    onClick: () -> Unit,
+) {
+    TopEntityCard(
+        eyebrow = "Top artist",
+        title = item.name,
+        subtitle = null,
+        footer = item.plays.toString() + " plays · " + formatListeningTime(item.listeningMs),
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun AlbumTopCard(
+    item: AlbumRanking,
+    onClick: () -> Unit,
+) {
+    TopEntityCard(
+        eyebrow = "Top album",
+        title = item.name,
+        subtitle = item.artistName,
+        footer = item.plays.toString() + " plays · " + formatListeningTime(item.listeningMs),
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun TopEntityCard(
+    eyebrow: String,
+    title: String,
+    subtitle: String?,
+    footer: String,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = eyebrow,
+                style = MaterialTheme.typography.labelLarge,
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+            Text(
+                text = footer,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecentActivityRow(
+    item: ListeningHistoryItem,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = item.trackName,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            item.artistName?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        Column {
+            Text(
+                text = formatEventDate(item.playedAtEpochMs),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Text(
+                text = formatListeningTime(item.listeningMs),
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }
@@ -125,3 +340,9 @@ private fun formatListeningTime(milliseconds: Long): String {
         minutes.toString() + "m"
     }
 }
+
+private fun formatEventDate(epochMs: Long): String =
+    DateFormat.getDateTimeInstance(
+        DateFormat.SHORT,
+        DateFormat.SHORT,
+    ).format(Date(epochMs))

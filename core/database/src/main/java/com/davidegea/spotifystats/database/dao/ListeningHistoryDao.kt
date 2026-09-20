@@ -95,13 +95,20 @@ interface ListeningHistoryDao {
             COUNT(DISTINCT track_id) AS uniqueTracks,
             (
                 SELECT COUNT(DISTINCT ta.artist_id)
-                FROM play_events pe
-                INNER JOIN track_artists ta ON ta.track_id = pe.track_id
+                FROM play_events artist_pe
+                INNER JOIN track_artists ta ON ta.track_id = artist_pe.track_id
+                WHERE artist_pe.played_at >= :fromInclusive
+                  AND artist_pe.played_at <= :toInclusive
             ) AS uniqueArtists
         FROM play_events
+        WHERE played_at >= :fromInclusive
+          AND played_at <= :toInclusive
         """,
     )
-    fun observeOverviewStats(): Flow<OverviewStatsRow>
+    fun observeOverviewStats(
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<OverviewStatsRow>
 
     @Query(
         """

@@ -12,6 +12,7 @@ import com.davidegea.spotifystats.domain.repository.SpotifyHistoryImportReposito
 import com.davidegea.spotifystats.domain.usecase.ImportSpotifyHistoryUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveAlbumDetailUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveArtistDetailUseCase
+import com.davidegea.spotifystats.domain.usecase.ObserveHomeDashboardUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveLibraryRankingsUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveListeningHistoryUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveOverviewStatsUseCase
@@ -69,6 +70,11 @@ object AppModule {
     fun provideObserveOverviewStatsUseCase(
         repository: ListeningHistoryRepository,
     ): ObserveOverviewStatsUseCase = ObserveOverviewStatsUseCase(repository)
+
+    @Provides
+    fun provideObserveHomeDashboardUseCase(
+        repository: ListeningHistoryRepository,
+    ): ObserveHomeDashboardUseCase = ObserveHomeDashboardUseCase(repository)
 
     @Provides
     fun provideObserveLibraryRankingsUseCase(
