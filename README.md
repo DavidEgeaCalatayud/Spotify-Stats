@@ -75,10 +75,10 @@ Requirements:
 - Android Build Tools 36.0.0
 - Gradle 9.4.1
 
-CI uses a pinned Gradle installation. A Gradle Wrapper will be added after the first successful baseline build.
+The repository includes the Gradle Wrapper pinned to Gradle 9.4.1 with distribution checksum verification.
 
 ```bash
-gradle :app:lintDebug :app:testDebugUnitTest :app:assembleDebug
+./gradlew :app:lintDebug :app:testDebugUnitTest :app:assembleDebug
 ```
 
 ## Roadmap
