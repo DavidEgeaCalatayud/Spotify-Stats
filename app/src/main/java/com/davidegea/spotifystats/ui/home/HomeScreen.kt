@@ -3,7 +3,6 @@ package com.davidegea.spotifystats.ui.home
 import com.davidegea.spotifystats.ui.components.DateRangeControls
 import com.davidegea.spotifystats.ui.components.ActivityChart
 import com.davidegea.spotifystats.domain.model.TimeRange
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +28,9 @@ import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.model.ArtistRanking
 import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
 import com.davidegea.spotifystats.domain.model.TrackRanking
+import com.davidegea.spotifystats.ui.components.EmptyStateCard
+import com.davidegea.spotifystats.ui.components.ErrorStateCard
+import com.davidegea.spotifystats.ui.components.LoadingStateCard
 import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
 import java.text.DateFormat
 import java.util.Date
@@ -77,11 +79,20 @@ private fun HomeScreen(
         )
 
         DateRangeControls(state.period, state.customRange, onPeriodSelected, onCustom)
-        if (state.loading) { LinearProgressIndicator(Modifier.fillMaxWidth()); return@Column }
-        state.error?.let { Text(it, color = MaterialTheme.colorScheme.error); return@Column }
+        if (state.loading) {
+            LoadingStateCard(message = "Loading your listening history…")
+            return@Column
+        }
+        state.error?.let {
+            ErrorStateCard(message = it)
+            return@Column
+        }
 
         if (state.totalPlays == 0L) {
-            EmptyDashboard()
+            EmptyStateCard(
+                title = "No listening data in this period",
+                body = "Choose another period or import your Spotify Extended Streaming History. Your files are processed locally on this device.",
+            )
             ImportHistorySection()
             return@Column
         }
@@ -159,25 +170,6 @@ private fun HomeScreen(
             style = MaterialTheme.typography.titleLarge,
         )
         ImportHistorySection()
-    }
-}
-
-@Composable
-private fun EmptyDashboard() {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = "No listening data in this period",
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-                text = "Choose another period or import your Spotify Extended Streaming History. Your files are processed locally on this device.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
     }
 }
 
