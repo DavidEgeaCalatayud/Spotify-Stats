@@ -20,6 +20,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.davidegea.spotifystats.R
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -60,23 +62,23 @@ private fun InsightsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "Insights",
+            text = stringResource(R.string.insights_title),
             style = MaterialTheme.typography.headlineMedium,
         )
         Text(
-            text = "Listening habits calculated locally from your Spotify history.",
+            text = stringResource(R.string.insights_body),
             style = MaterialTheme.typography.bodyLarge,
         )
 
         DateRangeControls(state.period, state.customRange, onPeriodSelected, onCustom)
-        TextButton(onClick = onCalendar) { Text("Open listening calendar") }
+        TextButton(onClick = onCalendar) { Text(stringResource(R.string.insights_open_calendar)) }
         if (state.loading) { LinearProgressIndicator(Modifier.fillMaxWidth()); return@Column }
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error); return@Column }
 
         if (state.heatmap.isEmpty()) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "No listening data in this period.",
+                    text = stringResource(R.string.insights_empty),
                     modifier = Modifier.padding(20.dp),
                 )
             }
@@ -88,12 +90,12 @@ private fun InsightsScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             InsightCard(
-                label = "Favourite hour",
+                label = stringResource(R.string.insights_favourite_hour),
                 value = state.favouriteHour?.let(::formatHour) ?: "—",
                 modifier = Modifier.weight(1f),
             )
             InsightCard(
-                label = "Favourite day",
+                label = stringResource(R.string.insights_favourite_day),
                 value = state.favouriteWeekday?.let(::weekdayLabel) ?: "—",
                 modifier = Modifier.weight(1f),
             )
@@ -104,19 +106,19 @@ private fun InsightsScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             InsightCard(
-                label = "Morning",
+                label = stringResource(R.string.insights_morning),
                 value = formatPercent(state.morningShare),
                 modifier = Modifier.weight(1f),
             )
             InsightCard(
-                label = "Night",
+                label = stringResource(R.string.insights_night),
                 value = formatPercent(state.nightShare),
                 modifier = Modifier.weight(1f),
             )
         }
 
         Text(
-            text = "Playback behaviour",
+            text = stringResource(R.string.insights_playback_behaviour),
             style = MaterialTheme.typography.titleLarge,
         )
 
@@ -125,28 +127,28 @@ private fun InsightsScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             InsightCard(
-                label = "Skipped",
+                label = stringResource(R.string.insights_skipped),
                 value = formatPercent(state.skipRate),
                 modifier = Modifier.weight(1f),
             )
             InsightCard(
-                label = "Shuffle",
+                label = stringResource(R.string.insights_shuffle),
                 value = formatPercent(state.shuffleRate),
                 modifier = Modifier.weight(1f),
             )
             InsightCard(
-                label = "Offline",
+                label = stringResource(R.string.insights_offline),
                 value = formatPercent(state.offlineRate),
                 modifier = Modifier.weight(1f),
             )
         }
 
         Text(
-            text = "Listening heatmap",
+            text = stringResource(R.string.insights_heatmap),
             style = MaterialTheme.typography.titleLarge,
         )
         Text(
-            text = "Local device time · darker blocks mean more listening time.",
+            text = stringResource(R.string.insights_heatmap_body),
             style = MaterialTheme.typography.bodySmall,
         )
         ListeningHeatmap(state.heatmap)
