@@ -23,16 +23,14 @@ class AppLaunchViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val importInProgress = MutableStateFlow(false)
-    private val exploreWithoutData = MutableStateFlow(false)
 
     val uiState = combine(
         observeOverviewStats(),
         importInProgress,
-        exploreWithoutData,
-    ) { overview, importing, exploring ->
+    ) { overview, importing ->
         when {
             importing -> AppLaunchState.NeedsImport
-            overview.totalPlays > 0L || exploring -> AppLaunchState.Ready
+            overview.totalPlays > 0L -> AppLaunchState.Ready
             else -> AppLaunchState.NeedsImport
         }
     }
@@ -44,15 +42,10 @@ class AppLaunchViewModel @Inject constructor(
         )
 
     fun onImportStarted() {
-        exploreWithoutData.value = false
         importInProgress.value = true
     }
 
     fun onImportFinished() {
         importInProgress.value = false
-    }
-
-    fun continueWithoutImport() {
-        exploreWithoutData.value = true
     }
 }
