@@ -3,6 +3,7 @@ package com.davidegea.spotifystats.ui.importhistory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.davidegea.spotifystats.domain.model.ImportDocument
+import com.davidegea.spotifystats.domain.model.ImportDocumentDiagnostic
 import com.davidegea.spotifystats.domain.model.ImportJobSnapshot
 import com.davidegea.spotifystats.domain.model.ImportJobStatus
 import com.davidegea.spotifystats.domain.model.ImportProgress
@@ -22,15 +23,18 @@ sealed interface ImportHistoryUiState {
         val runId: String,
         val progress: ImportProgress,
         val queued: Boolean,
+        val documents: List<ImportDocumentDiagnostic>,
     ) : ImportHistoryUiState
     data class Complete(
         val runId: String,
         val summary: ImportSummary,
+        val documents: List<ImportDocumentDiagnostic>,
     ) : ImportHistoryUiState
     data class Failed(
         val runId: String?,
         val message: String,
         val canRetry: Boolean,
+        val documents: List<ImportDocumentDiagnostic>,
     ) : ImportHistoryUiState
 }
 
@@ -50,6 +54,7 @@ class ImportHistoryViewModel @Inject constructor(
                 runId = job?.id,
                 message = error,
                 canRetry = job != null,
+                documents = job?.documents.orEmpty(),
             )
         } else {
             job.toUiState()
@@ -115,6 +120,7 @@ class ImportHistoryViewModel @Inject constructor(
                     skippedRecords = skippedRecords,
                 ),
                 queued = status == ImportJobStatus.QUEUED,
+                documents = documents,
             )
 
             ImportJobStatus.COMPLETED -> ImportHistoryUiState.Complete(
@@ -127,18 +133,21 @@ class ImportHistoryViewModel @Inject constructor(
                     skippedRecords = skippedRecords,
                     failedDocuments = failedDocuments,
                 ),
+                documents = documents,
             )
 
             ImportJobStatus.FAILED -> ImportHistoryUiState.Failed(
                 runId = id,
                 message = lastError ?: "Import finished with document errors",
                 canRetry = true,
+                documents = documents,
             )
 
             ImportJobStatus.CANCELLED -> ImportHistoryUiState.Failed(
                 runId = id,
                 message = "Import cancelled. You can resume the remaining documents.",
                 canRetry = true,
+                documents = documents,
             )
         }
     }
