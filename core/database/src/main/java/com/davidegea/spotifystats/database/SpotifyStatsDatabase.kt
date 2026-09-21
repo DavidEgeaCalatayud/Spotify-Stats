@@ -8,12 +8,15 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.davidegea.spotifystats.database.dao.ImportDao
+import com.davidegea.spotifystats.database.dao.ImportJobDao
 import com.davidegea.spotifystats.database.dao.ListeningHistoryDao
 import com.davidegea.spotifystats.database.entity.AlbumEntity
 import com.davidegea.spotifystats.database.entity.ArtistEntity
 import com.davidegea.spotifystats.database.entity.PlayEventEntity
 import com.davidegea.spotifystats.database.entity.TrackArtistCrossRef
 import com.davidegea.spotifystats.database.entity.TrackEntity
+import com.davidegea.spotifystats.database.entity.ImportRunEntity
+import com.davidegea.spotifystats.database.entity.ImportDocumentDiagnosticEntity
 
 @Database(
     entities = [
@@ -25,8 +28,10 @@ import com.davidegea.spotifystats.database.entity.TrackEntity
         TrackSearchEntity::class,
         ArtistSearchEntity::class,
         AlbumSearchEntity::class,
+        ImportRunEntity::class,
+        ImportDocumentDiagnosticEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(DatabaseConverters::class)
@@ -34,6 +39,7 @@ abstract class SpotifyStatsDatabase : RoomDatabase() {
     abstract fun listeningHistoryDao(): ListeningHistoryDao
     abstract fun explorationDao(): ExplorationDao
     abstract fun importDao(): ImportDao
+    abstract fun importJobDao(): ImportJobDao
 
     companion object {
         const val DATABASE_NAME = "spotify_stats.db"

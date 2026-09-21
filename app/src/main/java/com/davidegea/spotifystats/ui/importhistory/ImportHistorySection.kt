@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.davidegea.spotifystats.domain.model.ImportDocumentDiagnostic
 
 @Composable
 fun ImportHistorySection(
@@ -67,6 +68,14 @@ fun ImportHistorySection(
                 is ImportHistoryUiState.Importing -> {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     Text(
+                        text = if (current.queued) {
+                            "Import queued. It will continue in the background."
+                        } else {
+                            "Importing in the background. You can leave this screen."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text(
                         text = "Processed " +
                             current.progress.processedRecords +
                             " records · " +
@@ -79,6 +88,7 @@ fun ImportHistorySection(
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
+                    DocumentDiagnostics(current.documents)
                 }
                 is ImportHistoryUiState.Complete -> {
                     Text(
@@ -97,16 +107,27 @@ fun ImportHistorySection(
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
+                    DocumentDiagnostics(current.documents)
                 }
                 is ImportHistoryUiState.Failed -> {
                     Text(
                         text = current.message,
                         color = MaterialTheme.colorScheme.error,
                     )
+                    DocumentDiagnostics(current.documents)
+                    if (current.canRetry) {
+                        TextButton(onClick = viewModel::retryImport) {
+                            Text("Resume remaining files")
+                        }
+                    }
                 }
             }
 
-            if (state is ImportHistoryUiState.Importing) TextButton(onClick = viewModel::cancelImport) { Text("Cancel import") }
+            if (state is ImportHistoryUiState.Importing) {
+                TextButton(onClick = viewModel::cancelImport) {
+                    Text("Cancel import")
+                }
+            }
             Button(
                 onClick = {
                     launcher.launch(
@@ -120,6 +141,37 @@ fun ImportHistorySection(
                 enabled = state !is ImportHistoryUiState.Importing,
             ) {
                 Text("Choose history files")
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun DocumentDiagnostics(
+    documents: List<ImportDocumentDiagnostic>,
+) {
+    if (documents.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = "Files",
+            style = MaterialTheme.typography.labelLarge,
+        )
+        documents.forEach { document ->
+            val name = document.displayName ?: "History file " + (document.position + 1)
+            val counters = document.processedRecords.toString() + " rows · " +
+                document.insertedEvents + " new · " +
+                document.duplicateEvents + " duplicate"
+            Text(
+                text = name + " — " + document.status.name.lowercase() + " · " + counters,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            document.errorMessage?.let { error ->
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
         }
     }
