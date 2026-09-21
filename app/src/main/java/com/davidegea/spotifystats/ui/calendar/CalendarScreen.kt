@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -81,7 +82,7 @@ private fun MonthGrid(year: Int, month: Int, days: Map<String, DailyListening>, 
     val max = days.values.maxOfOrNull { it.listeningMs }?.coerceAtLeast(1) ?: 1
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(DateFormatSymbols.getInstance().months[month], style = MaterialTheme.typography.titleLarge)
-        val locale = Locale.getDefault()
+        val locale = LocalConfiguration.current.locales[0]
         val weekdayNames = remember(locale) {
             val names = DateFormatSymbols.getInstance(locale).shortWeekdays
             listOf(
