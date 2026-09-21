@@ -1,8 +1,10 @@
 package com.davidegea.spotifystats.data.importer
 
 import java.io.ByteArrayInputStream
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.fail
 import org.junit.Test
 
 class SpotifyExtendedHistoryParserTest {
@@ -43,8 +45,55 @@ class SpotifyExtendedHistoryParserTest {
             .toList()
 
         assertEquals(2, records.size)
-        assertEquals("After Hours", records.first().trackName)
-        assertEquals(214823L, records.first().msPlayed)
-        assertNull(records[1].trackName)
+        assertEquals("After Hours", records.first()?.trackName)
+        assertEquals(214823L, records.first()?.msPlayed)
+        assertNull(records[1]?.trackName)
+    }
+
+    @Test
+    fun malformedRecordDoesNotPreventLaterRecordsFromBeingParsed() {
+        val json = """
+            [
+              {
+                "ts":"2026-09-20T12:00:00Z",
+                "ms_played":30000,
+                "master_metadata_track_name":"First",
+                "master_metadata_album_artist_name":"Artist"
+              },
+              {
+                "ts":"2026-09-20T12:01:00Z",
+                "ms_played":"not-a-number",
+                "master_metadata_track_name":"Broken",
+                "master_metadata_album_artist_name":"Artist"
+              },
+              {
+                "ts":"2026-09-20T12:02:00Z",
+                "ms_played":45000,
+                "master_metadata_track_name":"Last",
+                "master_metadata_album_artist_name":"Artist"
+              }
+            ]
+        """.trimIndent()
+
+        val records = SpotifyExtendedHistoryParser()
+            .parse(ByteArrayInputStream(json.toByteArray()))
+            .toList()
+
+        assertEquals(3, records.size)
+        assertEquals("First", records[0]?.trackName)
+        assertNull(records[1])
+        assertEquals("Last", records[2]?.trackName)
+    }
+
+    @Test
+    fun rejectsNonArrayDocuments() {
+        try {
+            SpotifyExtendedHistoryParser()
+                .parse(ByteArrayInputStream("""{"not":"history"}""".toByteArray()))
+                .toList()
+            fail("Expected a document-level parse failure")
+        } catch (_: SerializationException) {
+            // expected
+        }
     }
 }
