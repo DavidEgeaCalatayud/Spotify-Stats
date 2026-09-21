@@ -1,13 +1,19 @@
 package com.davidegea.spotifystats.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,20 +21,48 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.davidegea.spotifystats.ui.albumdetail.AlbumDetailRoute
 import com.davidegea.spotifystats.ui.artistdetail.ArtistDetailRoute
+import com.davidegea.spotifystats.ui.calendar.CalendarRoute
 import com.davidegea.spotifystats.ui.home.HomeRoute
 import com.davidegea.spotifystats.ui.insights.InsightsRoute
 import com.davidegea.spotifystats.ui.library.LibraryRoute
-import com.davidegea.spotifystats.ui.you.YouRoute
-import com.davidegea.spotifystats.ui.calendar.CalendarRoute
-import com.davidegea.spotifystats.ui.wrapped.WrappedRoute
+import com.davidegea.spotifystats.ui.onboarding.AppLaunchState
+import com.davidegea.spotifystats.ui.onboarding.AppLaunchViewModel
+import com.davidegea.spotifystats.ui.onboarding.FirstRunOnboardingScreen
 import com.davidegea.spotifystats.ui.trackdetail.TrackDetailRoute
+import com.davidegea.spotifystats.ui.wrapped.WrappedRoute
+import com.davidegea.spotifystats.ui.you.YouRoute
 
 private const val TRACK_DETAIL_ROUTE = "track/{trackId}"
 private const val ARTIST_DETAIL_ROUTE = "artist/{artistId}"
 private const val ALBUM_DETAIL_ROUTE = "album/{albumId}"
 
 @Composable
-fun SpotifyStatsRoot() {
+fun SpotifyStatsRoot(
+    launchViewModel: AppLaunchViewModel = hiltViewModel(),
+) {
+    val launchState by launchViewModel.uiState.collectAsStateWithLifecycle()
+
+    when (launchState) {
+        AppLaunchState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        AppLaunchState.NeedsImport -> {
+            FirstRunOnboardingScreen(
+                onImportStarted = launchViewModel::onImportStarted,
+                onImportFinished = launchViewModel::onImportFinished,
+            )
+        }
+        AppLaunchState.Ready -> SpotifyStatsAppShell()
+    }
+}
+
+@Composable
+private fun SpotifyStatsAppShell() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -98,12 +132,21 @@ fun SpotifyStatsRoot() {
                 )
             }
             composable(AppDestination.You.route) {
-                YouRoute(onWrapped = { navController.navigate("wrapped") }, onCalendar = { navController.navigate("calendar") })
+                YouRoute(
+                    onWrapped = { navController.navigate("wrapped") },
+                    onCalendar = { navController.navigate("calendar") },
+                )
             }
             composable("calendar") {
-                CalendarRoute(onBack = { navController.navigateUp() }, onTrack = { navController.navigate("track/$it") }, onArtist = { navController.navigate("artist/$it") })
+                CalendarRoute(
+                    onBack = { navController.navigateUp() },
+                    onTrack = { navController.navigate("track/$it") },
+                    onArtist = { navController.navigate("artist/$it") },
+                )
             }
-            composable("wrapped") { WrappedRoute(onBack = { navController.navigateUp() }) }
+            composable("wrapped") {
+                WrappedRoute(onBack = { navController.navigateUp() })
+            }
             composable(TRACK_DETAIL_ROUTE) {
                 TrackDetailRoute(onBack = navController::navigateUp)
             }
