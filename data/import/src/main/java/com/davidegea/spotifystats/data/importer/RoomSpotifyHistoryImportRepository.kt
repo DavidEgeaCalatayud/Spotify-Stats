@@ -153,7 +153,7 @@ class RoomSpotifyHistoryImportRepository(
                 currentCoroutineContext().ensureActive()
                 counters.processedRecords++
 
-                val normalized = normalizer.normalize(record)
+                val normalized = record?.let(normalizer::normalize)
                 if (normalized == null) {
                     counters.skippedRecords++
                 } else {
