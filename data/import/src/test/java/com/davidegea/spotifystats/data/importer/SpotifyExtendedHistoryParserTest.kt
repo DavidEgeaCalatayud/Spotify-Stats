@@ -96,4 +96,21 @@ class SpotifyExtendedHistoryParserTest {
             // expected
         }
     }
+    @Test
+    fun rejectsMissingTopLevelCommaEvenWhenBothObjectsAreIndividuallyValid() {
+        val invalid = """[
+          {"ts":"2026-09-20T12:00:00Z","ms_played":1000}
+          {"ts":"2026-09-20T12:01:00Z","ms_played":2000}
+        ]""".trimIndent()
+
+        try {
+            SpotifyExtendedHistoryParser()
+                .parse(ByteArrayInputStream(invalid.toByteArray()))
+                .toList()
+            fail("Expected strict top-level JSON validation")
+        } catch (_: SerializationException) {
+            // expected
+        }
+    }
+
 }
