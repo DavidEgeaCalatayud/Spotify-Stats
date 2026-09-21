@@ -96,8 +96,9 @@ The repository includes the Gradle Wrapper pinned to Gradle 9.4.1 with distribut
   :app:lintDebug :app:assembleDebug
 ```
 
-The CI uploads `spotify-stats-debug` (APK) and `verification-reports` (tests, lint,
-Room schemas and the generated sample share card). A reproducible desktop SQL check:
+The CI uploads `spotify-stats-debug`, a `spotify-stats-release-candidate` artifact containing release APK/AAB outputs, and `verification-reports` (tests, lint, Room schemas and the generated sample share card). Release signing is opt-in through environment secrets; no keystore belongs in the repository. See [the release guide](docs/release.md) and [privacy policy](docs/privacy-policy.md).
+
+A reproducible desktop SQL check:
 
 ```bash
 python scripts/benchmark_sql.py --events 300000
