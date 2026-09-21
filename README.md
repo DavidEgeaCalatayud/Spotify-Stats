@@ -1,6 +1,11 @@
 # Spotify Stats
 
-A local-first Android application that turns Spotify Extended Streaming History into detailed, private listening analytics.
+[![Android CI](https://github.com/DavidEgeaCalatayud/Spotify-Stats/actions/workflows/android-ci.yml/badge.svg)](https://github.com/DavidEgeaCalatayud/Spotify-Stats/actions/workflows/android-ci.yml)
+
+A local-first native Android application that turns Spotify Extended Streaming History into detailed, private listening analytics.
+
+**Kotlin · Jetpack Compose · Material 3 · Hilt · Room / SQLite · WorkManager · Clean Architecture / MVVM**
+
 
 ## Product principles
 
