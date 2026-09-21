@@ -6,7 +6,9 @@ import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
 import com.davidegea.spotifystats.domain.model.HourlyListening
 import com.davidegea.spotifystats.domain.model.ListeningHeatmapCell
+import com.davidegea.spotifystats.domain.model.ListeningHistoryCursor
 import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
+import com.davidegea.spotifystats.domain.model.ListeningHistoryPage
 import com.davidegea.spotifystats.domain.model.OverviewStats
 import com.davidegea.spotifystats.domain.model.PlaybackBehaviorStats
 import com.davidegea.spotifystats.domain.model.TrackDetail
@@ -79,4 +81,15 @@ interface ListeningHistoryRepository {
         toInclusive: Long,
         limit: Int,
     ): Flow<List<ListeningHistoryItem>>
+
+    suspend fun loadListeningHistoryPage(
+        fromInclusive: Long,
+        toInclusive: Long,
+        cursor: ListeningHistoryCursor?,
+        pageSize: Int,
+    ): ListeningHistoryPage = ListeningHistoryPage(
+        items = emptyList(),
+        nextCursor = null,
+        hasMore = false,
+    )
 }
