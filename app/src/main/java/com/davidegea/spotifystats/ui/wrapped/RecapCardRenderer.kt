@@ -7,6 +7,7 @@ import android.text.TextPaint
 import android.text.TextUtils
 import androidx.core.content.FileProvider
 import com.davidegea.spotifystats.domain.model.Recap
+import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.ui.components.listeningTime
 import com.davidegea.spotifystats.ui.components.rangeLabel
 import java.io.File
@@ -32,21 +33,21 @@ object RecapCardRenderer {
                     paint.typeface = Typeface.create("sans-serif", Typeface.BOLD)
                     canvas.drawText(TextUtils.ellipsize(text, paint, 900f, TextUtils.TruncateAt.END).toString(), 90f, y, paint)
                 }
-                line("YOUR MUSIC STORY", 160f, 42f, true)
-                line(rangeLabel(recap.range), 245f, 36f)
+                line(context.getString(R.string.wrapped_card_story), 160f, 42f, true)
+                line(rangeLabel(recap.range, context.getString(R.string.period_all_time)), 245f, 36f)
                 line(recap.overview.totalPlays.toString(), 480f, 156f, true)
-                line("recorded listening events", 550f, 42f)
+                line(context.getString(R.string.wrapped_card_recorded_events), 550f, 42f)
                 line(listeningTime(recap.overview.totalListeningMs), 695f, 85f)
-                line("${recap.overview.uniqueTracks} songs · ${recap.overview.uniqueArtists} artists", 765f, 38f)
-                line("01 / TOP SONG", 940f, 30f, true)
+                line(context.getString(R.string.wrapped_card_songs_artists, recap.overview.uniqueTracks, recap.overview.uniqueArtists), 765f, 38f)
+                line(context.getString(R.string.wrapped_card_top_song), 940f, 30f, true)
                 line(recap.tracks.firstOrNull()?.name ?: "—", 1020f, 58f)
-                line("02 / TOP ARTIST", 1160f, 30f, true)
+                line(context.getString(R.string.wrapped_card_top_artist), 1160f, 30f, true)
                 line(recap.artists.firstOrNull()?.name ?: "—", 1240f, 58f)
-                line("03 / TOP ALBUM", 1380f, 30f, true)
+                line(context.getString(R.string.wrapped_card_top_album), 1380f, 30f, true)
                 line(recap.albums.firstOrNull()?.name ?: "—", 1460f, 58f)
-                line("${recap.discoveries} artists first recorded in this period", 1620f, 35f)
-                line("SPOTIFY STATS · MADE ON MY DEVICE", 1790f, 28f, true)
-                line("Based on imported history · unofficial app", 1845f, 26f)
+                line(context.getString(R.string.wrapped_card_discoveries, recap.discoveries), 1620f, 35f)
+                line(context.getString(R.string.wrapped_card_brand), 1790f, 28f, true)
+                line(context.getString(R.string.wrapped_card_disclaimer), 1845f, 26f)
                 output.outputStream().use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
             } finally { bitmap.recycle() }
             output
