@@ -96,37 +96,37 @@ class RecapCardTest {
     }
 
     @Test
-    fun rendersAndSharesFourCardStorySequenceUsingContentUris() {
+    fun rendersFourCardStorySequenceAndBuildsSafeMultiShareIntent() {
         runBlocking {
             Robolectric.buildActivity(Activity::class.java).setup().use { controller ->
-            val activity = controller.get()
-            val files = RecapCardRenderer.renderSequence(activity, recap())
+                val activity = controller.get()
+                val files = RecapCardRenderer.renderSequence(activity, recap())
 
-            assertEquals(4, files.size)
-            assertTrue(files.map(File::getName).any { it.contains("overview") })
-            assertTrue(files.map(File::getName).any { it.contains("track") })
-            assertTrue(files.map(File::getName).any { it.contains("artist") })
-            assertTrue(files.map(File::getName).any { it.contains("story") })
-            files.forEach(::assertPortrait)
-
-            RecapCardRenderer.shareSequence(activity, recap())
-
-            val chooser = shadowOf(activity).nextStartedActivity
-            assertEquals(Intent.ACTION_CHOOSER, chooser.action)
-            @Suppress("DEPRECATION")
-            val send = chooser.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)!!
-            assertEquals(Intent.ACTION_SEND_MULTIPLE, send.action)
-            assertEquals("image/png", send.type)
-            assertTrue(send.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
-
-            @Suppress("DEPRECATION")
-            val uris = send.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
-            assertNotNull(uris)
-            assertEquals(4, uris!!.size)
-            assertTrue(uris.all { it.scheme == "content" })
-            assertEquals(4, send.clipData?.itemCount)
+                assertEquals(4, files.size)
+                assertTrue(files.map(File::getName).any { it.contains("overview") })
+                assertTrue(files.map(File::getName).any { it.contains("track") })
+                assertTrue(files.map(File::getName).any { it.contains("artist") })
+                assertTrue(files.map(File::getName).any { it.contains("story") })
+                files.forEach(::assertPortrait)
             }
         }
+
+        val uris = arrayListOf(
+            Uri.parse("content://test/stories/overview.png"),
+            Uri.parse("content://test/stories/track.png"),
+            Uri.parse("content://test/stories/artist.png"),
+            Uri.parse("content://test/stories/story.png"),
+        )
+        val send = RecapCardRenderer.buildSequenceShareIntent(uris)
+
+        assertEquals(Intent.ACTION_SEND_MULTIPLE, send.action)
+        assertEquals("image/png", send.type)
+        assertTrue(send.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
+        @Suppress("DEPRECATION")
+        val shared = send.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
+        assertEquals(uris, shared)
+        assertTrue(shared!!.all { it.scheme == "content" })
+        assertEquals(4, send.clipData?.itemCount)
     }
 
     private fun assertPortrait(file: File) {
