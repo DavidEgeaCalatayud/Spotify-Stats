@@ -55,6 +55,7 @@ fun SpotifyStatsRoot(
             FirstRunOnboardingScreen(
                 onImportStarted = launchViewModel::onImportStarted,
                 onImportFinished = launchViewModel::onImportFinished,
+                onContinueWithoutImport = launchViewModel::continueWithoutImport,
             )
         }
         AppLaunchState.Ready -> SpotifyStatsAppShell()
