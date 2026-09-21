@@ -14,8 +14,15 @@ import org.robolectric.annotation.Config
 class NavigationSmokeTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
 
-    @Test fun startsOfflineAndNavigatesAllTopLevelScreensAndRecaps() {
-        compose.waitUntil(10_000) { compose.onAllNodesWithText("Choose history files").fetchSemanticsNodes().isNotEmpty() }
+    @Test fun startsWithOnboardingAndCanExploreAllTopLevelScreensAndRecaps() {
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithText("Choose history files").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Your complete Spotify history, privately").assertExists()
+        compose.onNodeWithText("Explore without importing").performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithText("Library").fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNodeWithText("Library").performClick()
         compose.onNodeWithText("Search songs, artists and albums").assertExists()
         compose.onNodeWithText("Insights").performClick()
