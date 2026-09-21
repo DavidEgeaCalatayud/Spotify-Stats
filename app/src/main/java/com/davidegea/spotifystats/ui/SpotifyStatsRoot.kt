@@ -10,6 +10,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -41,9 +44,11 @@ fun SpotifyStatsRoot(
     launchViewModel: AppLaunchViewModel = hiltViewModel(),
 ) {
     val launchState by launchViewModel.uiState.collectAsStateWithLifecycle()
+    var exploreWithoutData by rememberSaveable { mutableStateOf(false) }
 
-    when (launchState) {
-        AppLaunchState.Loading -> {
+    when {
+        exploreWithoutData || launchState == AppLaunchState.Ready -> SpotifyStatsAppShell()
+        launchState == AppLaunchState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
@@ -51,14 +56,13 @@ fun SpotifyStatsRoot(
                 CircularProgressIndicator()
             }
         }
-        AppLaunchState.NeedsImport -> {
+        else -> {
             FirstRunOnboardingScreen(
                 onImportStarted = launchViewModel::onImportStarted,
                 onImportFinished = launchViewModel::onImportFinished,
-                onContinueWithoutImport = launchViewModel::continueWithoutImport,
+                onContinueWithoutImport = { exploreWithoutData = true },
             )
         }
-        AppLaunchState.Ready -> SpotifyStatsAppShell()
     }
 }
 
