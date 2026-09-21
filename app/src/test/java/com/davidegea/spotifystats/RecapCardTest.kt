@@ -62,8 +62,9 @@ class RecapCardTest {
     )
 
     @Test
-    fun createsPortraitPngAndSharesOnlyAContentUri() = runBlocking {
-        Robolectric.buildActivity(Activity::class.java).setup().use { controller ->
+    fun createsPortraitPngAndSharesOnlyAContentUri() {
+        runBlocking {
+            Robolectric.buildActivity(Activity::class.java).setup().use { controller ->
             val activity = controller.get()
             RecapCardRenderer.share(activity, recap())
 
@@ -90,12 +91,14 @@ class RecapCardTest {
                 File("build/reports/share-card.png"),
                 overwrite = true,
             )
+            }
         }
     }
 
     @Test
-    fun rendersAndSharesFourCardStorySequenceUsingContentUris() = runBlocking {
-        Robolectric.buildActivity(Activity::class.java).setup().use { controller ->
+    fun rendersAndSharesFourCardStorySequenceUsingContentUris() {
+        runBlocking {
+            Robolectric.buildActivity(Activity::class.java).setup().use { controller ->
             val activity = controller.get()
             val files = RecapCardRenderer.renderSequence(activity, recap())
 
@@ -122,6 +125,7 @@ class RecapCardTest {
             assertEquals(4, uris!!.size)
             assertTrue(uris.all { it.scheme == "content" })
             assertEquals(4, send.clipData?.itemCount)
+            }
         }
     }
 
