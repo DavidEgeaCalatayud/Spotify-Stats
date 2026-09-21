@@ -27,30 +27,54 @@ class SpotifyExtendedHistoryParser(
             throw SerializationException("Spotify history must be a top-level JSON array")
         }
 
+        var hasRecord = false
+        var expectingRecord = true
+
         while (true) {
-            when (val token = readNextNonWhitespace(reader)) {
-                -1 -> throw SerializationException("Unexpected end of Spotify history array")
-                ']'.code -> break
-                ','.code -> continue
-                '{'.code -> {
-                    val rawRecord = readObject(reader)
-                    if (rawRecord == null) {
-                        yield(null)
-                    } else {
-                        val record = try {
-                            json.decodeFromString<SpotifyExtendedHistoryRecord>(rawRecord)
-                        } catch (_: SerializationException) {
-                            null
-                        } catch (_: IllegalArgumentException) {
-                            null
-                        }
-                        yield(record)
-                    }
-                }
-                else -> throw SerializationException(
-                    "Expected a Spotify history object but found '" + token.toChar() + "'",
-                )
+            val token = readNextNonWhitespace(reader)
+            if (token == -1) {
+                throw SerializationException("Unexpected end of Spotify history array")
             }
+
+            if (expectingRecord) {
+                if (token == ']'.code) {
+                    if (hasRecord) {
+                        throw SerializationException("Trailing comma in Spotify history array")
+                    }
+                    break
+                }
+                if (token != '{'.code) {
+                    throw SerializationException("Expected a Spotify history object")
+                }
+
+                val rawRecord = readObject(reader)
+                if (rawRecord == null) {
+                    yield(null)
+                } else {
+                    val record = try {
+                        json.decodeFromString<SpotifyExtendedHistoryRecord>(rawRecord)
+                    } catch (_: SerializationException) {
+                        null
+                    } catch (_: IllegalArgumentException) {
+                        null
+                    }
+                    yield(record)
+                }
+                hasRecord = true
+                expectingRecord = false
+            } else {
+                when (token) {
+                    ','.code -> expectingRecord = true
+                    ']'.code -> break
+                    else -> throw SerializationException(
+                        "Expected ',' or ']' after Spotify history record",
+                    )
+                }
+            }
+        }
+
+        if (readNextNonWhitespace(reader) != -1) {
+            throw SerializationException("Unexpected data after Spotify history array")
         }
     }
 
