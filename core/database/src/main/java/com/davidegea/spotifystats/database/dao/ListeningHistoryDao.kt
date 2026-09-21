@@ -300,12 +300,13 @@ interface ListeningHistoryDao {
             COALESCE(SUM(CASE WHEN pe.skipped = 1 THEN 1 ELSE 0 END), 0) AS skippedPlays,
             COALESCE(SUM(CASE WHEN pe.skipped IS NOT NULL THEN 1 ELSE 0 END), 0) AS skipKnownPlays,
             COALESCE(SUM(CASE WHEN pe.ms_played >= 30000 THEN 1 ELSE 0 END), 0) AS meaningfulPlays,
-            AVG(CASE WHEN t.duration_ms > 0 THEN MIN(pe.ms_played * 1.0 / t.duration_ms, 1.0) END) AS averageCompletion,
-            COALESCE(SUM(CASE WHEN t.duration_ms > 0 AND pe.ms_played >= t.duration_ms * 0.9 THEN 1 ELSE 0 END), 0) AS completedPlays,
+            AVG(CASE WHEN COALESCE(tm.duration_ms, t.duration_ms) > 0 THEN MIN(pe.ms_played * 1.0 / COALESCE(tm.duration_ms, t.duration_ms), 1.0) END) AS averageCompletion,
+            COALESCE(SUM(CASE WHEN COALESCE(tm.duration_ms, t.duration_ms) > 0 AND pe.ms_played >= COALESCE(tm.duration_ms, t.duration_ms) * 0.9 THEN 1 ELSE 0 END), 0) AS completedPlays,
             (SELECT CAST(strftime('%H', h.played_at / 1000, 'unixepoch', 'localtime') AS INTEGER)
                 FROM play_events h WHERE h.track_id = t.id GROUP BY strftime('%H', h.played_at / 1000, 'unixepoch', 'localtime')
                 ORDER BY SUM(h.ms_played) DESC, COUNT(*) DESC, strftime('%H', h.played_at / 1000, 'unixepoch', 'localtime') LIMIT 1) AS favouriteHour
         FROM tracks t
+        LEFT JOIN track_metadata tm ON tm.track_id = t.id
         LEFT JOIN play_events pe ON pe.track_id = t.id
         WHERE t.id = :trackId
         GROUP BY t.id, t.name
