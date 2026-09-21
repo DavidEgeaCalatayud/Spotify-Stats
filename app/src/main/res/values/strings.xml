@@ -113,7 +113,7 @@
     <string name="wrapped_share">Share 9:16 card</string>
     <string name="wrapped_creating">Creating card…</string>
     <string name="wrapped_share_error">Could not create the share card. Please try again.</string>
-    <string name="wrapped_share_note">Only the recap shown here is included in the card. Sharing opens Android's chooser.</string>
+    <string name="wrapped_share_note">Only the recap shown here is included in the card. Sharing opens Android\'s chooser.</string>
 
     <string name="import_title">Import Spotify history</string>
     <string name="import_body">Select one or more JSON files, or a ZIP containing your Extended Streaming History. Processing stays on this device.</string>
@@ -185,8 +185,8 @@
     <string name="you_calendar">Listening calendar</string>
     <string name="you_privacy_title">Your data, on your device</string>
     <string name="you_privacy_body_1">No account, application server, advertising or telemetry. The offline app has no Internet permission. IP addresses and user agents are discarded during import.</string>
-    <string name="you_privacy_body_2">Android's application sandbox protects local storage. Database encryption has not been enabled. Backups are portable ZIP files containing your history; keep them in a private location.</string>
-    <string name="you_privacy_body_3">You choose whether to share recap images or save a backup to a cloud provider through Android's file picker. Nothing is uploaded automatically.</string>
+    <string name="you_privacy_body_2">Android\'s application sandbox protects local storage. Database encryption has not been enabled. Backups are portable ZIP files containing your history; keep them in a private location.</string>
+    <string name="you_privacy_body_3">You choose whether to share recap images or save a backup to a cloud provider through Android\'s file picker. Nothing is uploaded automatically.</string>
     <string name="you_backup_restore">Backup and restore</string>
     <string name="you_backup_restore_body">Restore replaces the current history after validating the entire backup. Export a copy first if you want to keep both datasets.</string>
     <string name="you_export_backup">Export backup</string>
