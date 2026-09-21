@@ -7,7 +7,9 @@ import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
 import com.davidegea.spotifystats.domain.model.HourlyListening
 import com.davidegea.spotifystats.domain.model.ListeningHeatmapCell
+import com.davidegea.spotifystats.domain.model.ListeningHistoryCursor
 import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
+import com.davidegea.spotifystats.domain.model.ListeningHistoryPage
 import com.davidegea.spotifystats.domain.model.OverviewStats
 import com.davidegea.spotifystats.domain.model.PlaybackBehaviorStats
 import com.davidegea.spotifystats.domain.model.TrackDetail
@@ -219,19 +221,54 @@ class RoomListeningHistoryRepository(
         limit: Int,
     ): Flow<List<ListeningHistoryItem>> =
         dao.observeListeningHistory(fromInclusive, toInclusive, limit).map { rows ->
-            rows.map { row ->
-                ListeningHistoryItem(
-                    eventId = row.id,
-                    trackId = row.trackId,
-                    trackName = row.trackName,
-                    artistName = row.artistName,
-                    albumName = row.albumName,
+            rows.map { row -> row.toHistoryDomain() }
+        }
+
+    override suspend fun loadListeningHistoryPage(
+        fromInclusive: Long,
+        toInclusive: Long,
+        cursor: ListeningHistoryCursor?,
+        pageSize: Int,
+    ): ListeningHistoryPage {
+        require(pageSize in 1..500) { "pageSize must be between 1 and 500" }
+        val rows = dao.loadListeningHistoryPage(
+            fromInclusive = fromInclusive,
+            toInclusive = toInclusive,
+            cursorPlayedAt = cursor?.playedAtEpochMs,
+            cursorEventId = cursor?.eventId,
+            limit = pageSize + 1,
+        )
+        val visible = rows.take(pageSize)
+        val items = visible.map { row -> row.toHistoryDomain() }
+        val hasMore = rows.size > pageSize
+        val nextCursor = if (hasMore) {
+            visible.lastOrNull()?.let { row ->
+                ListeningHistoryCursor(
                     playedAtEpochMs = row.playedAtEpochMs,
-                    listeningMs = row.listeningMs,
-                    skipped = row.skipped,
+                    eventId = row.id,
                 )
             }
+        } else {
+            null
         }
+        return ListeningHistoryPage(
+            items = items,
+            nextCursor = nextCursor,
+            hasMore = hasMore,
+        )
+    }
+
+    private fun com.davidegea.spotifystats.database.dao.ListeningHistoryRow.toHistoryDomain() =
+        ListeningHistoryItem(
+            eventId = id,
+            trackId = trackId,
+            trackName = trackName,
+            artistName = artistName,
+            albumName = albumName,
+            playedAtEpochMs = playedAtEpochMs,
+            listeningMs = listeningMs,
+            skipped = skipped,
+        )
 
     private fun com.davidegea.spotifystats.database.dao.TrackRankingRow.toDomain(): TrackRanking =
         TrackRanking(
