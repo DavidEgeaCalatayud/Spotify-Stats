@@ -8,6 +8,25 @@ enum class ImportJobStatus {
     CANCELLED,
 }
 
+enum class ImportDocumentStatus {
+    PENDING,
+    RUNNING,
+    COMPLETED,
+    FAILED,
+    CANCELLED,
+}
+
+data class ImportDocumentDiagnostic(
+    val position: Int,
+    val displayName: String?,
+    val status: ImportDocumentStatus,
+    val processedRecords: Long,
+    val insertedEvents: Long,
+    val duplicateEvents: Long,
+    val skippedRecords: Long,
+    val errorMessage: String?,
+)
+
 data class ImportJobSnapshot(
     val id: String,
     val status: ImportJobStatus,
@@ -20,4 +39,5 @@ data class ImportJobSnapshot(
     val failedDocuments: Int,
     val currentDocumentName: String?,
     val lastError: String?,
+    val documents: List<ImportDocumentDiagnostic>,
 )
