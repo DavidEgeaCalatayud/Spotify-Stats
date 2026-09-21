@@ -47,6 +47,16 @@ interface ImportJobDao {
 
     @Query(
         """
+        SELECT *
+        FROM import_documents
+        WHERE run_id = :runId
+        ORDER BY position ASC
+        """,
+    )
+    fun observeDocuments(runId: String): Flow<List<ImportDocumentDiagnosticEntity>>
+
+    @Query(
+        """
         SELECT
             r.id AS id,
             r.status AS status,
