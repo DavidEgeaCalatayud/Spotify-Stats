@@ -16,9 +16,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.domain.model.AlbumDetail
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,11 +36,11 @@ fun AlbumDetailRoute(
 
     when (val current = state) {
         AlbumDetailUiState.Loading -> DetailMessage(
-            message = "Loading album…",
+            message = stringResource(R.string.detail_loading_album),
             onBack = onBack,
         )
         AlbumDetailUiState.NotFound -> DetailMessage(
-            message = "Album not found.",
+            message = stringResource(R.string.detail_album_not_found),
             onBack = onBack,
         )
         is AlbumDetailUiState.Content -> AlbumDetailScreen(
@@ -55,6 +57,8 @@ private fun AlbumDetailScreen(
     onBack: () -> Unit,
     onTrackClick: (Long) -> Unit,
 ) {
+    val unknown = stringResource(R.string.detail_unknown)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,18 +67,12 @@ private fun AlbumDetailScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         TextButton(onClick = onBack) {
-            Text("Back")
+            Text(stringResource(R.string.action_back))
         }
 
-        Text(
-            text = detail.name,
-            style = MaterialTheme.typography.headlineMedium,
-        )
+        Text(detail.name, style = MaterialTheme.typography.headlineMedium)
         detail.artistName?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Text(it, style = MaterialTheme.typography.titleMedium)
         }
 
         Row(
@@ -82,12 +80,12 @@ private fun AlbumDetailScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             MetricCard(
-                label = "Plays",
+                label = stringResource(R.string.metric_plays),
                 value = detail.totalPlays.toString(),
                 modifier = Modifier.weight(1f),
             )
             MetricCard(
-                label = "Listening",
+                label = stringResource(R.string.metric_listening),
                 value = formatListeningTime(detail.totalListeningMs),
                 modifier = Modifier.weight(1f),
             )
@@ -98,17 +96,38 @@ private fun AlbumDetailScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("Album history", style = MaterialTheme.typography.titleMedium)
-                Text("Different songs: " + detail.uniqueTracks)
-                Text("Peak month: ${detail.peakMonth ?: "—"}")
-                Text("First listened: " + formatDate(detail.firstPlayedAtEpochMs))
-                Text("Last listened: " + formatDate(detail.lastPlayedAtEpochMs))
+                Text(
+                    stringResource(R.string.detail_album_history),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(stringResource(R.string.detail_different_songs, detail.uniqueTracks))
+                Text(
+                    stringResource(
+                        R.string.detail_peak_month,
+                        detail.peakMonth ?: "—",
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.detail_first_listened,
+                        formatDate(detail.firstPlayedAtEpochMs, unknown),
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.detail_last_listened,
+                        formatDate(detail.lastPlayedAtEpochMs, unknown),
+                    ),
+                )
             }
         }
 
-        Text("Top songs", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(R.string.detail_top_songs),
+            style = MaterialTheme.typography.titleLarge,
+        )
         if (detail.topTracks.isEmpty()) {
-            Text("No song history available.")
+            Text(stringResource(R.string.detail_no_song_history))
         } else {
             detail.topTracks.forEachIndexed { index, track ->
                 Card(
@@ -126,8 +145,11 @@ private fun AlbumDetailScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(track.name, style = MaterialTheme.typography.titleMedium)
                             Text(
-                                track.plays.toString() + " plays · " +
+                                stringResource(
+                                    R.string.plays_and_time,
+                                    track.plays,
                                     formatListeningTime(track.listeningMs),
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
@@ -139,10 +161,7 @@ private fun AlbumDetailScreen(
 }
 
 @Composable
-private fun DetailMessage(
-    message: String,
-    onBack: () -> Unit,
-) {
+private fun DetailMessage(message: String, onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -150,7 +169,7 @@ private fun DetailMessage(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         TextButton(onClick = onBack) {
-            Text("Back")
+            Text(stringResource(R.string.action_back))
         }
         Text(message, style = MaterialTheme.typography.titleLarge)
     }
@@ -173,8 +192,8 @@ private fun MetricCard(
     }
 }
 
-private fun formatDate(epochMs: Long?): String {
-    if (epochMs == null) return "Unknown"
+private fun formatDate(epochMs: Long?, unknown: String): String {
+    if (epochMs == null) return unknown
     return SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date(epochMs))
 }
 
@@ -182,9 +201,6 @@ private fun formatListeningTime(milliseconds: Long): String {
     val totalMinutes = milliseconds / 60_000
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
-    return if (hours > 0) {
-        hours.toString() + "h " + minutes.toString() + "m"
-    } else {
-        minutes.toString() + "m"
-    }
+    return if (hours > 0) hours.toString() + "h " + minutes.toString() + "m"
+    else minutes.toString() + "m"
 }
