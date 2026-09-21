@@ -94,9 +94,14 @@ class AnalyticsDatabaseTest {
             old.rawQuery("SELECT name FROM sqlite_master WHERE type='trigger' AND name LIKE 'room_fts_%'", null).use { while(it.moveToNext()) triggers += it.getString(0) }
             triggers.forEach { old.execSQL("DROP TRIGGER `$it`") }
             listOf("tracks_fts", "artists_fts", "albums_fts").forEach { old.execSQL("DROP TABLE `$it`") }
+            old.execSQL("DROP TABLE IF EXISTS import_documents")
+            old.execSQL("DROP TABLE IF EXISTS import_runs")
             old.version = 1
         }
-        val migrated = Room.databaseBuilder(context, SpotifyStatsDatabase::class.java, name).allowMainThreadQueries().addMigrations(MIGRATION_1_2).build()
+        val migrated = Room.databaseBuilder(context, SpotifyStatsDatabase::class.java, name)
+            .allowMainThreadQueries()
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .build()
         try {
             migrated.openHelper.writableDatabase.query("SELECT name FROM artists WHERE id=1").use { assertTrue(it.moveToFirst()); assertEquals("Original", it.getString(0)) }
             migrated.openHelper.writableDatabase.query("SELECT rowid FROM artists_fts WHERE artists_fts MATCH 'Original'").use { assertTrue(it.moveToFirst()) }
@@ -104,4 +109,69 @@ class AnalyticsDatabaseTest {
             migrated.openHelper.writableDatabase.query("SELECT rowid FROM artists_fts WHERE artists_fts MATCH 'Fresh'").use { assertTrue(it.moveToFirst()) }
         } finally { migrated.close(); context.deleteDatabase(name) }
     }
+
+    @Test fun v2MigrationAddsImportJobTablesWithoutTouchingListeningData() = runBlocking {
+        val context = RuntimeEnvironment.getApplication()
+        val name = "migration-v2-v3-test.db"
+        context.deleteDatabase(name)
+
+        val current = Room.databaseBuilder(
+            context,
+            SpotifyStatsDatabase::class.java,
+            name,
+        ).allowMainThreadQueries().build()
+        current.importDao().insertArtist(
+            ArtistEntity(1, null, "artist-migration", "Migration Artist", "migration artist"),
+        )
+        current.close()
+
+        android.database.sqlite.SQLiteDatabase.openDatabase(
+            context.getDatabasePath(name).path,
+            null,
+            0,
+        ).use { old ->
+            old.execSQL("DROP TABLE IF EXISTS import_documents")
+            old.execSQL("DROP TABLE IF EXISTS import_runs")
+            old.version = 2
+        }
+
+        val migrated = Room.databaseBuilder(
+            context,
+            SpotifyStatsDatabase::class.java,
+            name,
+        ).allowMainThreadQueries()
+            .addMigrations(MIGRATION_2_3)
+            .build()
+
+        try {
+            migrated.openHelper.writableDatabase
+                .query("SELECT name FROM artists WHERE id=1")
+                .use {
+                    assertTrue(it.moveToFirst())
+                    assertEquals("Migration Artist", it.getString(0))
+                }
+
+            migrated.openHelper.writableDatabase
+                .query("SELECT COUNT(*) FROM import_runs")
+                .use {
+                    assertTrue(it.moveToFirst())
+                    assertEquals(0, it.getInt(0))
+                }
+
+            migrated.importJobDao().insertRun(
+                ImportRunEntity(
+                    id = "migration-run",
+                    createdAtEpochMs = 1,
+                    updatedAtEpochMs = 1,
+                    status = "QUEUED",
+                    totalDocuments = 1,
+                ),
+            )
+            assertEquals("migration-run", migrated.importJobDao().getRun("migration-run")?.id)
+        } finally {
+            migrated.close()
+            context.deleteDatabase(name)
+        }
+    }
+
 }
