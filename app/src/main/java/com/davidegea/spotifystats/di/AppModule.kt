@@ -6,9 +6,12 @@ import com.davidegea.spotifystats.data.history.RoomListeningHistoryRepository
 import com.davidegea.spotifystats.data.importer.RoomSpotifyHistoryImportRepository
 import com.davidegea.spotifystats.database.SpotifyStatsDatabase
 import com.davidegea.spotifystats.database.dao.ImportDao
+import com.davidegea.spotifystats.database.dao.ImportJobDao
 import com.davidegea.spotifystats.database.dao.ListeningHistoryDao
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
 import com.davidegea.spotifystats.domain.repository.SpotifyHistoryImportRepository
+import com.davidegea.spotifystats.domain.repository.SpotifyImportJobManager
+import com.davidegea.spotifystats.data.importer.WorkManagerSpotifyImportJobManager
 import com.davidegea.spotifystats.domain.usecase.ImportSpotifyHistoryUseCase
 import com.davidegea.spotifystats.domain.usecase.LoadListeningHistoryPageUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveAlbumDetailUseCase
@@ -38,7 +41,10 @@ object AppModule {
         context,
         SpotifyStatsDatabase::class.java,
         SpotifyStatsDatabase.DATABASE_NAME,
-    ).addMigrations(com.davidegea.spotifystats.database.MIGRATION_1_2).build()
+    ).addMigrations(
+        com.davidegea.spotifystats.database.MIGRATION_1_2,
+        com.davidegea.spotifystats.database.MIGRATION_2_3,
+    ).build()
 
     @Provides
     fun provideListeningHistoryDao(
@@ -49,6 +55,11 @@ object AppModule {
     fun provideImportDao(
         database: SpotifyStatsDatabase,
     ): ImportDao = database.importDao()
+
+    @Provides
+    fun provideImportJobDao(
+        database: SpotifyStatsDatabase,
+    ): ImportJobDao = database.importJobDao()
 
     @Provides
     @Singleton
@@ -130,6 +141,18 @@ object AppModule {
     fun provideObserveListeningHabitsUseCase(
         repository: ListeningHistoryRepository,
     ): ObserveListeningHabitsUseCase = ObserveListeningHabitsUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideSpotifyImportJobManager(
+        @ApplicationContext context: Context,
+        database: SpotifyStatsDatabase,
+        importJobDao: ImportJobDao,
+    ): SpotifyImportJobManager = WorkManagerSpotifyImportJobManager(
+        context = context,
+        database = database,
+        importJobDao = importJobDao,
+    )
 
     @Provides
     fun provideImportSpotifyHistoryUseCase(
