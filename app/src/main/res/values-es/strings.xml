@@ -118,6 +118,8 @@
     <string name="import_title">Importar historial de Spotify</string>
     <string name="import_body">Selecciona uno o varios JSON, o un ZIP que contenga tu Extended Streaming History. Todo el procesamiento se realiza en este dispositivo.</string>
     <string name="import_instructions">Solicita el Extended streaming history desde los ajustes de privacidad de tu cuenta de Spotify e importa el ZIP descargado o los JSON de audio. No se admiten exportaciones normales de cuenta ni podcasts.</string>
+    <string name="import_request_history">Solicitar historial a Spotify</string>
+    <string name="import_request_history_note">Abre la privacidad de tu cuenta de Spotify en el navegador. En Descarga de tus datos, solicita Extended Streaming History. Spotify puede pedirte que inicies sesión.</string>
     <string name="import_queued">Importación en cola. Continuará en segundo plano.</string>
     <string name="import_background">Importando en segundo plano. Puedes salir de esta pantalla.</string>
     <string name="import_progress">%1$d registros procesados · %2$d reproducciones nuevas</string>

@@ -7,8 +7,8 @@ This document describes the reproducible release path for Spotify Stats. It does
 The application version is controlled from `gradle.properties`:
 
 ```properties
-APP_VERSION_CODE=1
-APP_VERSION_NAME=0.1.0-rc.1
+APP_VERSION_CODE=2
+APP_VERSION_NAME=0.1.0-rc.2
 ```
 
 Increase `APP_VERSION_CODE` for every distributed build. Use semantic versions for `APP_VERSION_NAME`.

@@ -11,11 +11,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.davidegea.spotifystats.R
 import androidx.compose.ui.unit.dp
@@ -31,6 +33,7 @@ fun ImportHistorySection(
     viewModel: ImportHistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(state) {
         when (state) {
@@ -65,6 +68,17 @@ fun ImportHistorySection(
             )
 
             Text(stringResource(R.string.import_instructions), style = MaterialTheme.typography.bodySmall)
+
+            OutlinedButton(
+                onClick = { uriHandler.openUri(SPOTIFY_ACCOUNT_PRIVACY_URL) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.import_request_history))
+            }
+            Text(
+                text = stringResource(R.string.import_request_history_note),
+                style = MaterialTheme.typography.bodySmall,
+            )
 
             when (val current = state) {
                 ImportHistoryUiState.Idle -> Unit
@@ -146,6 +160,7 @@ fun ImportHistorySection(
                     )
                 },
                 enabled = state !is ImportHistoryUiState.Importing,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.import_choose_files))
             }
@@ -200,3 +215,5 @@ private fun importDocumentStatusLabel(status: ImportDocumentStatus): String = st
         ImportDocumentStatus.CANCELLED -> R.string.import_status_cancelled
     },
 )
+
+private const val SPOTIFY_ACCOUNT_PRIVACY_URL = "https://www.spotify.com/account/privacy/"
