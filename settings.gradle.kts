@@ -24,6 +24,7 @@ include(
     ":domain",
     ":data:history",
     ":data:import",
+    ":data:metadata",
 )
 
 include(":data:privacy")
