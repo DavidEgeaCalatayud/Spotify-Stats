@@ -67,6 +67,14 @@ fun ImportHistorySection(
                 is ImportHistoryUiState.Importing -> {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     Text(
+                        text = if (current.queued) {
+                            "Import queued. It will continue in the background."
+                        } else {
+                            "Importing in the background. You can leave this screen."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text(
                         text = "Processed " +
                             current.progress.processedRecords +
                             " records · " +
@@ -103,10 +111,19 @@ fun ImportHistorySection(
                         text = current.message,
                         color = MaterialTheme.colorScheme.error,
                     )
+                    if (current.canRetry) {
+                        TextButton(onClick = viewModel::retryImport) {
+                            Text("Resume remaining files")
+                        }
+                    }
                 }
             }
 
-            if (state is ImportHistoryUiState.Importing) TextButton(onClick = viewModel::cancelImport) { Text("Cancel import") }
+            if (state is ImportHistoryUiState.Importing) {
+                TextButton(onClick = viewModel::cancelImport) {
+                    Text("Cancel import")
+                }
+            }
             Button(
                 onClick = {
                     launcher.launch(
