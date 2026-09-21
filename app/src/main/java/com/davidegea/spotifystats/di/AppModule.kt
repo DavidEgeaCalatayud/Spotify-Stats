@@ -10,6 +10,7 @@ import com.davidegea.spotifystats.database.dao.ListeningHistoryDao
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
 import com.davidegea.spotifystats.domain.repository.SpotifyHistoryImportRepository
 import com.davidegea.spotifystats.domain.usecase.ImportSpotifyHistoryUseCase
+import com.davidegea.spotifystats.domain.usecase.LoadListeningHistoryPageUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveAlbumDetailUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveArtistDetailUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveHomeDashboardUseCase
@@ -119,6 +120,11 @@ object AppModule {
     fun provideObserveListeningHistoryUseCase(
         repository: ListeningHistoryRepository,
     ): ObserveListeningHistoryUseCase = ObserveListeningHistoryUseCase(repository)
+
+    @Provides
+    fun provideLoadListeningHistoryPageUseCase(
+        repository: ListeningHistoryRepository,
+    ): LoadListeningHistoryPageUseCase = LoadListeningHistoryPageUseCase(repository)
 
     @Provides
     fun provideObserveListeningHabitsUseCase(

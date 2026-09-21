@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -101,7 +102,7 @@ fun LibraryRoute(
 
         if (section == LibrarySection.History) {
             Text(
-                text = "Latest ${state.limit} events in the selected period",
+                text = "Loaded ${state.history.size} events in the selected period",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(vertical = 8.dp),
             )
@@ -117,7 +118,9 @@ fun LibraryRoute(
                 LibrarySection.Albums -> state.albums.size
                 LibrarySection.History -> state.history.size
             }
-            if (currentCount == 0) item { Text("No listening data in this period.", Modifier.padding(16.dp)) }
+            if (currentCount == 0 && !(section == LibrarySection.History && state.historyLoading)) {
+                item { Text("No listening data in this period.", Modifier.padding(16.dp)) }
+            }
             when (section) {
                 LibrarySection.Songs -> itemsIndexed(
                     items = state.tracks,
@@ -171,7 +174,34 @@ fun LibraryRoute(
                     )
                 }
             }
-            if (currentCount >= state.limit) item { TextButton(onClick = viewModel::loadMore) { Text("Load more") } }
+            if (section == LibrarySection.History) {
+                state.historyError?.let { message ->
+                    item {
+                        Text(
+                            text = message,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
+                }
+                if (state.historyLoading) {
+                    item {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                } else if (state.historyHasMore) {
+                    item {
+                        TextButton(onClick = viewModel::loadMoreHistory) {
+                            Text("Load more")
+                        }
+                    }
+                }
+            } else if (currentCount >= state.limit) {
+                item {
+                    TextButton(onClick = viewModel::loadMoreRankings) {
+                        Text("Load more")
+                    }
+                }
+            }
         }
     }
 }

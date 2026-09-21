@@ -470,4 +470,47 @@ interface ListeningHistoryDao {
         toInclusive: Long,
         limit: Int,
     ): Flow<List<ListeningHistoryRow>>
+
+    @Query(
+        """
+        SELECT
+            pe.id AS id,
+            t.id AS trackId,
+            t.name AS trackName,
+            (
+                SELECT a.name
+                FROM track_artists ta
+                INNER JOIN artists a ON a.id = ta.artist_id
+                WHERE ta.track_id = t.id
+                ORDER BY ta.position ASC
+                LIMIT 1
+            ) AS artistName,
+            al.name AS albumName,
+            pe.played_at AS playedAtEpochMs,
+            pe.ms_played AS listeningMs,
+            pe.skipped AS skipped
+        FROM play_events pe
+        INNER JOIN tracks t ON t.id = pe.track_id
+        LEFT JOIN albums al ON al.id = t.album_id
+        WHERE pe.played_at >= :fromInclusive
+          AND pe.played_at <= :toInclusive
+          AND (
+              :cursorPlayedAt IS NULL
+              OR pe.played_at < :cursorPlayedAt
+              OR (
+                  pe.played_at = :cursorPlayedAt
+                  AND pe.id < :cursorEventId
+              )
+          )
+        ORDER BY pe.played_at DESC, pe.id DESC
+        LIMIT :limit
+        """,
+    )
+    suspend fun loadListeningHistoryPage(
+        fromInclusive: Long,
+        toInclusive: Long,
+        cursorPlayedAt: Long?,
+        cursorEventId: Long?,
+        limit: Int,
+    ): List<ListeningHistoryRow>
 }

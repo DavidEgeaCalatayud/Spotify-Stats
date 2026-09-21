@@ -146,3 +146,15 @@ data class ListeningHistoryItem(
     val listeningMs: Long,
     val skipped: Boolean?,
 )
+
+
+data class ListeningHistoryCursor(
+    val playedAtEpochMs: Long,
+    val eventId: Long,
+)
+
+data class ListeningHistoryPage(
+    val items: List<ListeningHistoryItem>,
+    val nextCursor: ListeningHistoryCursor?,
+    val hasMore: Boolean,
+)

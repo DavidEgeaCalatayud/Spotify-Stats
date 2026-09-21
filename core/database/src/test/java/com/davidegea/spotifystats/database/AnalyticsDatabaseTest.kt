@@ -52,6 +52,35 @@ class AnalyticsDatabaseTest {
         assertEquals(1L, db.explorationDao().quality(1_000, 1_000).events)
         assertEquals(0L, db.explorationDao().quality(1_001, 1_999).events)
     }
+
+    @Test fun historyKeysetDoesNotSkipEventsWithIdenticalTimestamps() = runBlocking {
+        seed()
+        val newest = db.importDao().insertPlayEvent(play("page-newest", 3_000, 10_000))
+        val sameTimeFirst = db.importDao().insertPlayEvent(play("page-same-1", 2_000, 10_000))
+        val sameTimeSecond = db.importDao().insertPlayEvent(play("page-same-2", 2_000, 10_000))
+        val oldest = db.importDao().insertPlayEvent(play("page-oldest", 1_000, 10_000))
+
+        val first = db.listeningHistoryDao().loadListeningHistoryPage(
+            fromInclusive = 0,
+            toInclusive = Long.MAX_VALUE,
+            cursorPlayedAt = null,
+            cursorEventId = null,
+            limit = 2,
+        )
+        assertEquals(listOf(newest, sameTimeSecond), first.map { it.id })
+
+        val cursor = first.last()
+        val second = db.listeningHistoryDao().loadListeningHistoryPage(
+            fromInclusive = 0,
+            toInclusive = Long.MAX_VALUE,
+            cursorPlayedAt = cursor.playedAtEpochMs,
+            cursorEventId = cursor.id,
+            limit = 2,
+        )
+        assertEquals(listOf(sameTimeFirst, oldest), second.map { it.id })
+        assertTrue(first.map { it.id }.intersect(second.map { it.id }.toSet()).isEmpty())
+    }
+
     @Test fun v1MigrationKeepsRowsAndBuildsSearchIncludingLaterWrites() = runBlocking {
         // Create a v1-shaped file with the exact original tables and indexes; remove only v2 FTS additions.
         val context = RuntimeEnvironment.getApplication()
