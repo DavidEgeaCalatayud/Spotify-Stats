@@ -1,54 +1,192 @@
 package com.davidegea.spotifystats.ui.insights
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.domain.model.AdvancedAnalytics
 import com.davidegea.spotifystats.ui.components.listeningTime
-import java.util.Locale
 
 @Composable
-fun AdvancedInsightsSection(data: AdvancedAnalytics, onTrack: (Long) -> Unit, onArtist: (Long) -> Unit) {
+fun AdvancedInsightsSection(
+    data: AdvancedAnalytics,
+    onTrack: (Long) -> Unit,
+    onArtist: (Long) -> Unit,
+) {
     val locale = LocalConfiguration.current.locales[0]
+
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("What counts as a listen?", style = MaterialTheme.typography.titleLarge)
-            Text("${data.quality.events} recorded events · ${data.quality.meaningful} listens of at least 30 seconds")
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                stringResource(R.string.advanced_listen_definition_title),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                stringResource(
+                    R.string.advanced_listen_definition,
+                    data.quality.events,
+                    data.quality.meaningful,
+                ),
+            )
             if (data.quality.durationKnown > 0) {
-                Text("${data.quality.completed} completed (at least 90%) / ${data.quality.durationKnown} events with known track duration")
-                data.quality.averageCompletion?.let { Text("${String.format(locale, "%.1f", it * 100)}% average completion") }
-            } else Text("Completion unavailable: the export does not contain track duration.")
+                Text(
+                    stringResource(
+                        R.string.advanced_completion,
+                        data.quality.completed,
+                        data.quality.durationKnown,
+                    ),
+                )
+                data.quality.averageCompletion?.let {
+                    Text(
+                        stringResource(
+                            R.string.advanced_average_completion,
+                            String.format(locale, "%.1f", it * 100),
+                        ),
+                    )
+                }
+            } else {
+                Text(stringResource(R.string.advanced_completion_unavailable))
+            }
         }
     }
+
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Listening sessions", style = MaterialTheme.typography.titleLarge)
-            Text("${data.sessions.count} sessions · ${listeningTime(data.sessions.averageListeningMs)} average listening")
-            Text("Longest listening: ${listeningTime(data.sessions.longestListeningMs)}")
-            Text("Inferred from playback intervals. A break longer than 30 minutes starts a session. Overlapping devices can increase summed listening time.", style = MaterialTheme.typography.bodySmall)
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                stringResource(R.string.advanced_sessions_title),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                stringResource(
+                    R.string.advanced_sessions_summary,
+                    data.sessions.count,
+                    listeningTime(data.sessions.averageListeningMs),
+                ),
+            )
+            Text(
+                stringResource(
+                    R.string.advanced_longest_listening,
+                    listeningTime(data.sessions.longestListeningMs),
+                ),
+            )
+            Text(
+                stringResource(R.string.advanced_sessions_method),
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
+
     data.trend?.let { trend ->
-        val change = trend.change?.let { String.format(locale, "%+.1f%%", it * 100) } ?: "No previous listening baseline"
-        Text("Trend: $change", style = MaterialTheme.typography.titleMedium)
-        Text("${listeningTime(trend.currentMs)} versus ${listeningTime(trend.previousMs)} in the preceding interval of equal length. Missing imports can affect comparisons.")
+        val change = trend.change?.let {
+            String.format(locale, "%+.1f%%", it * 100)
+        } ?: stringResource(R.string.advanced_no_baseline)
+
+        Text(
+            stringResource(R.string.advanced_trend, change),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            stringResource(
+                R.string.advanced_trend_detail,
+                listeningTime(trend.currentMs),
+                listeningTime(trend.previousMs),
+            ),
+        )
     }
-    Text("Highlights from imported history", style = MaterialTheme.typography.titleLarge)
-    data.discoveries.forEach { item -> Highlight("New artist · ${item.name}", "First recorded in this period · ${item.plays} events") { onArtist(item.artistId) } }
-    data.rediscoveries.forEach { item -> Highlight("Rediscovered · ${item.name}", "${item.gapDays} days since the last recorded play before this period") { onTrack(item.trackId) } }
-    data.obsessions.forEach { item -> Highlight("On repeat · ${item.name}", "${item.plays} events, up from ${item.previousPlays} in the preceding interval") { onArtist(item.artistId) } }
-    data.forgotten.forEach { item -> Highlight("Taking a break · ${item.name}", "${item.previousPlays} events in the preceding interval; none recorded in this one") { onTrack(item.trackId) } }
-    if (data.discoveries.isEmpty() && data.rediscoveries.isEmpty() && data.obsessions.isEmpty() && data.forgotten.isEmpty()) Text("No highlights meet the thresholds in this period.")
-    Text("On repeat requires 10 events and twice the preceding count. Rediscovery requires a gap of 90 days. These describe the imported records, not your complete life unless you imported it all.", style = MaterialTheme.typography.bodySmall)
+
+    Text(
+        stringResource(R.string.advanced_highlights_title),
+        style = MaterialTheme.typography.titleLarge,
+    )
+
+    data.discoveries.forEach { item ->
+        Highlight(
+            stringResource(R.string.advanced_new_artist, item.name),
+            stringResource(R.string.advanced_first_recorded, item.plays),
+        ) {
+            onArtist(item.artistId)
+        }
+    }
+
+    data.rediscoveries.forEach { item ->
+        Highlight(
+            stringResource(R.string.advanced_rediscovered, item.name),
+            stringResource(R.string.advanced_gap, item.gapDays),
+        ) {
+            onTrack(item.trackId)
+        }
+    }
+
+    data.obsessions.forEach { item ->
+        Highlight(
+            stringResource(R.string.advanced_on_repeat, item.name),
+            stringResource(
+                R.string.advanced_on_repeat_detail,
+                item.plays,
+                item.previousPlays,
+            ),
+        ) {
+            onArtist(item.artistId)
+        }
+    }
+
+    data.forgotten.forEach { item ->
+        Highlight(
+            stringResource(R.string.advanced_taking_break, item.name),
+            stringResource(
+                R.string.advanced_taking_break_detail,
+                item.previousPlays,
+            ),
+        ) {
+            onTrack(item.trackId)
+        }
+    }
+
+    if (
+        data.discoveries.isEmpty() &&
+        data.rediscoveries.isEmpty() &&
+        data.obsessions.isEmpty() &&
+        data.forgotten.isEmpty()
+    ) {
+        Text(stringResource(R.string.advanced_no_highlights))
+    }
+
+    Text(
+        stringResource(R.string.advanced_thresholds),
+        style = MaterialTheme.typography.bodySmall,
+    )
 }
 
 @Composable
-private fun Highlight(title: String, detail: String, onClick: () -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Column(Modifier.padding(16.dp)) { Text(title, style = MaterialTheme.typography.titleMedium); Text(detail) }
+private fun Highlight(
+    title: String,
+    detail: String,
+    onClick: () -> Unit,
+) {
+    Card(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(detail)
+        }
     }
 }

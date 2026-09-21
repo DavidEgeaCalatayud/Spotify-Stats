@@ -7,7 +7,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import com.davidegea.spotifystats.R
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -25,14 +30,20 @@ fun CalendarRoute(onBack: () -> Unit, onTrack: (Long) -> Unit, onArtist: (Long) 
     val detail by viewModel.detail.collectAsStateWithLifecycle()
     val byDate = remember(state.days) { state.days.associateBy { it.date } }
     LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { TextButton(onClick = onBack) { Text("Back") }; Text("Listening calendar", style = MaterialTheme.typography.headlineMedium) }
+        item { TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }; Text(stringResource(R.string.calendar_title), style = MaterialTheme.typography.headlineMedium) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                TextButton(onClick = { viewModel.changeYear(-1) }) { Text("Previous") }
+                TextButton(onClick = { viewModel.changeYear(-1) }) { Text(stringResource(R.string.action_previous)) }
                 Text(state.year.toString(), style = MaterialTheme.typography.headlineSmall)
-                TextButton(onClick = { viewModel.changeYear(1) }) { Text("Next") }
+                TextButton(onClick = { viewModel.changeYear(1) }) { Text(stringResource(R.string.action_next)) }
             }
-            Text("${state.days.sumOf { it.plays }} events · ${listeningTime(state.days.sumOf { it.listeningMs })} · local dates")
+            Text(
+                stringResource(
+                    R.string.calendar_year_summary,
+                    state.days.sumOf { it.plays },
+                    listeningTime(state.days.sumOf { it.listeningMs }),
+                ),
+            )
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
         items(12) { month -> MonthGrid(state.year, month, byDate, viewModel::selectDay) }
@@ -41,14 +52,25 @@ fun CalendarRoute(onBack: () -> Unit, onTrack: (Long) -> Unit, onArtist: (Long) 
         AlertDialog(onDismissRequest = { viewModel.selectDay(null) }, title = { Text(date) }, text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val recap = detail
-                if (recap == null) Text("Loading day…") else {
-                    Text("${recap.overview.totalPlays} events · ${recap.overview.uniqueTracks} songs · ${recap.overview.uniqueArtists} artists")
+                if (recap == null) Text(stringResource(R.string.calendar_loading_day)) else {
+                    Text(
+                        stringResource(
+                            R.string.calendar_day_summary,
+                            recap.overview.totalPlays,
+                            recap.overview.uniqueTracks,
+                            recap.overview.uniqueArtists,
+                        ),
+                    )
                     Text(listeningTime(recap.overview.totalListeningMs))
-                    recap.artists.firstOrNull()?.let { artist -> TextButton(onClick = { viewModel.selectDay(null); onArtist(artist.id) }) { Text("Top artist: ${artist.name}") } }
-                    recap.tracks.firstOrNull()?.let { track -> TextButton(onClick = { viewModel.selectDay(null); onTrack(track.id) }) { Text("Top song: ${track.name}") } }
+                    recap.artists.firstOrNull()?.let { artist -> TextButton(onClick = { viewModel.selectDay(null); onArtist(artist.id) }) {
+                        Text(stringResource(R.string.calendar_top_artist, artist.name))
+                    } }
+                    recap.tracks.firstOrNull()?.let { track -> TextButton(onClick = { viewModel.selectDay(null); onTrack(track.id) }) {
+                        Text(stringResource(R.string.calendar_top_song, track.name))
+                    } }
                 }
             }
-        }, confirmButton = { TextButton(onClick = { viewModel.selectDay(null) }) { Text("Close") } })
+        }, confirmButton = { TextButton(onClick = { viewModel.selectDay(null) }) { Text(stringResource(R.string.action_close)) } })
     }
 }
 
@@ -60,7 +82,22 @@ private fun MonthGrid(year: Int, month: Int, days: Map<String, DailyListening>, 
     val max = days.values.maxOfOrNull { it.listeningMs }?.coerceAtLeast(1) ?: 1
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(DateFormatSymbols.getInstance().months[month], style = MaterialTheme.typography.titleLarge)
-        Row { listOf("M", "T", "W", "T", "F", "S", "S").forEach { Text(it, Modifier.weight(1f)) } }
+        val locale = LocalConfiguration.current.locales[0]
+        val weekdayNames = remember(locale) {
+            val names = DateFormatSymbols.getInstance(locale).shortWeekdays
+            listOf(
+                Calendar.MONDAY,
+                Calendar.TUESDAY,
+                Calendar.WEDNESDAY,
+                Calendar.THURSDAY,
+                Calendar.FRIDAY,
+                Calendar.SATURDAY,
+                Calendar.SUNDAY,
+            ).map { names[it].take(2) }
+        }
+        Row {
+            weekdayNames.forEach { Text(it, Modifier.weight(1f)) }
+        }
         for (week in 0 until (offset + count + 6) / 7) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 for (weekday in 0..6) {
@@ -69,9 +106,24 @@ private fun MonthGrid(year: Int, month: Int, days: Map<String, DailyListening>, 
                         val date = String.format(Locale.ROOT, "%04d-%02d-%02d", year, month + 1, number)
                         val value = days[date]
                         val color = MaterialTheme.colorScheme.primary.copy(alpha = if (value == null) 0.04f else 0.15f + 0.65f * value.listeningMs / max)
-                        Box(Modifier.weight(1f).height(48.dp).background(color, MaterialTheme.shapes.small).clickable { onDay(date) }.semantics {
-                            contentDescription = "$date: ${value?.plays ?: 0} events, ${listeningTime(value?.listeningMs ?: 0)}"
-                        }.padding(6.dp)) { Text(number.toString()) }
+                        val dayDescription = stringResource(
+                            R.string.calendar_day_accessibility,
+                            date,
+                            value?.plays ?: 0,
+                            listeningTime(value?.listeningMs ?: 0),
+                        )
+                        Box(
+                            Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .background(color, MaterialTheme.shapes.small)
+                                .clickable { onDay(date) }
+                                .semantics {
+                                    role = Role.Button
+                                    contentDescription = dayDescription
+                                }
+                                .padding(6.dp),
+                        ) { Text(number.toString()) }
                     }
                 }
             }

@@ -16,10 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.davidegea.spotifystats.R
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.davidegea.spotifystats.domain.model.ImportDocumentDiagnostic
+import com.davidegea.spotifystats.domain.model.ImportDocumentStatus
 
 @Composable
 fun ImportHistorySection(
@@ -53,15 +56,15 @@ fun ImportHistorySection(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
-                text = "Import Spotify history",
+                text = stringResource(R.string.import_title),
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(
-                text = "Select one or more JSON files, or a ZIP containing your Extended Streaming History. Processing stays on this device.",
+                text = stringResource(R.string.import_body),
                 style = MaterialTheme.typography.bodyMedium,
             )
 
-            Text("Request Extended streaming history from the Privacy settings of your Spotify account, then import the downloaded ZIP or audio JSON files. Regular account exports and podcasts are not supported.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.import_instructions), style = MaterialTheme.typography.bodySmall)
 
             when (val current = state) {
                 ImportHistoryUiState.Idle -> Unit
@@ -69,18 +72,18 @@ fun ImportHistorySection(
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     Text(
                         text = if (current.queued) {
-                            "Import queued. It will continue in the background."
+                            stringResource(R.string.import_queued)
                         } else {
-                            "Importing in the background. You can leave this screen."
+                            stringResource(R.string.import_background)
                         },
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Text(
-                        text = "Processed " +
-                            current.progress.processedRecords +
-                            " records · " +
-                            current.progress.insertedEvents +
-                            " new plays",
+                        text = stringResource(
+                            R.string.import_progress,
+                            current.progress.processedRecords,
+                            current.progress.insertedEvents,
+                        ),
                     )
                     current.progress.documentName?.let {
                         Text(
@@ -92,18 +95,22 @@ fun ImportHistorySection(
                 }
                 is ImportHistoryUiState.Complete -> {
                     Text(
-                        text = "Imported " + current.summary.insertedEvents +
-                            " plays · " + current.summary.duplicateEvents +
-                            " duplicates ignored · " + current.summary.skippedRecords +
-                            " unsupported/invalid rows",
+                        text = stringResource(
+                            R.string.import_summary,
+                            current.summary.insertedEvents,
+                            current.summary.duplicateEvents,
+                            current.summary.skippedRecords,
+                        ),
                     )
                     if (current.summary.insertedEvents == 0L && current.summary.duplicateEvents == 0L) {
-                        Text("No supported music events found. Check that you selected Extended Streaming History audio files.")
+                        Text(stringResource(R.string.import_no_supported))
                     }
                     if (current.summary.failedDocuments > 0) {
                         Text(
-                            text = current.summary.failedDocuments.toString() +
-                                " document(s) could not be fully processed.",
+                            text = stringResource(
+                                R.string.import_failed_documents,
+                                current.summary.failedDocuments,
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -117,7 +124,7 @@ fun ImportHistorySection(
                     DocumentDiagnostics(current.documents)
                     if (current.canRetry) {
                         TextButton(onClick = viewModel::retryImport) {
-                            Text("Resume remaining files")
+                            Text(stringResource(R.string.import_resume))
                         }
                     }
                 }
@@ -125,7 +132,7 @@ fun ImportHistorySection(
 
             if (state is ImportHistoryUiState.Importing) {
                 TextButton(onClick = viewModel::cancelImport) {
-                    Text("Cancel import")
+                    Text(stringResource(R.string.import_cancel))
                 }
             }
             Button(
@@ -140,7 +147,7 @@ fun ImportHistorySection(
                 },
                 enabled = state !is ImportHistoryUiState.Importing,
             ) {
-                Text("Choose history files")
+                Text(stringResource(R.string.import_choose_files))
             }
         }
     }
@@ -154,16 +161,21 @@ private fun DocumentDiagnostics(
     if (documents.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            text = "Files",
+            text = stringResource(R.string.import_files),
             style = MaterialTheme.typography.labelLarge,
         )
         documents.forEach { document ->
-            val name = document.displayName ?: "History file " + (document.position + 1)
-            val counters = document.processedRecords.toString() + " rows · " +
-                document.insertedEvents + " new · " +
-                document.duplicateEvents + " duplicate"
+            val name = document.displayName
+                ?: stringResource(R.string.import_history_file, document.position + 1)
             Text(
-                text = name + " — " + document.status.name.lowercase() + " · " + counters,
+                text = stringResource(
+                    R.string.import_file_summary,
+                    name,
+                    importDocumentStatusLabel(document.status),
+                    document.processedRecords,
+                    document.insertedEvents,
+                    document.duplicateEvents,
+                ),
                 style = MaterialTheme.typography.bodySmall,
             )
             document.errorMessage?.let { error ->
@@ -176,3 +188,15 @@ private fun DocumentDiagnostics(
         }
     }
 }
+
+
+@Composable
+private fun importDocumentStatusLabel(status: ImportDocumentStatus): String = stringResource(
+    when (status) {
+        ImportDocumentStatus.PENDING -> R.string.import_status_pending
+        ImportDocumentStatus.RUNNING -> R.string.import_status_running
+        ImportDocumentStatus.COMPLETED -> R.string.import_status_completed
+        ImportDocumentStatus.FAILED -> R.string.import_status_failed
+        ImportDocumentStatus.CANCELLED -> R.string.import_status_cancelled
+    },
+)

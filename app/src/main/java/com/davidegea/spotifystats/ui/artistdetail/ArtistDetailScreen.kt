@@ -15,9 +15,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -32,11 +34,11 @@ fun ArtistDetailRoute(
 
     when (val current = state) {
         ArtistDetailUiState.Loading -> DetailMessage(
-            message = "Loading artist…",
+            message = stringResource(R.string.detail_loading_artist),
             onBack = onBack,
         )
         ArtistDetailUiState.NotFound -> DetailMessage(
-            message = "Artist not found.",
+            message = stringResource(R.string.detail_artist_not_found),
             onBack = onBack,
         )
         is ArtistDetailUiState.Content -> ArtistDetailScreen(
@@ -51,6 +53,8 @@ private fun ArtistDetailScreen(
     detail: ArtistDetail,
     onBack: () -> Unit,
 ) {
+    val unknown = stringResource(R.string.detail_unknown)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,25 +63,22 @@ private fun ArtistDetailScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         TextButton(onClick = onBack) {
-            Text("Back")
+            Text(stringResource(R.string.action_back))
         }
 
-        Text(
-            text = detail.name,
-            style = MaterialTheme.typography.headlineMedium,
-        )
+        Text(detail.name, style = MaterialTheme.typography.headlineMedium)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             MetricCard(
-                label = "Plays",
+                label = stringResource(R.string.metric_plays),
                 value = detail.totalPlays.toString(),
                 modifier = Modifier.weight(1f),
             )
             MetricCard(
-                label = "Listening",
+                label = stringResource(R.string.metric_listening),
                 value = formatListeningTime(detail.totalListeningMs),
                 modifier = Modifier.weight(1f),
             )
@@ -88,18 +89,39 @@ private fun ArtistDetailScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("Artist history", style = MaterialTheme.typography.titleMedium)
-                Text("Different songs: " + detail.uniqueTracks)
-                Text("All-time artist rank: #${detail.allTimeRank}")
-                Text("Most active year: ${detail.mostActiveYear ?: "—"}")
-                Text("First heard: " + formatDate(detail.firstPlayedAtEpochMs))
-                Text("Last heard: " + formatDate(detail.lastPlayedAtEpochMs))
+                Text(
+                    stringResource(R.string.detail_artist_history),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(stringResource(R.string.detail_different_songs, detail.uniqueTracks))
+                Text(stringResource(R.string.detail_all_time_artist_rank, detail.allTimeRank))
+                Text(
+                    stringResource(
+                        R.string.detail_most_active_year,
+                        detail.mostActiveYear?.toString() ?: "—",
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.detail_first_heard,
+                        formatDate(detail.firstPlayedAtEpochMs, unknown),
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.detail_last_heard,
+                        formatDate(detail.lastPlayedAtEpochMs, unknown),
+                    ),
+                )
             }
         }
 
-        Text("Top songs", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(R.string.detail_top_songs),
+            style = MaterialTheme.typography.titleLarge,
+        )
         if (detail.topTracks.isEmpty()) {
-            Text("No song history available.")
+            Text(stringResource(R.string.detail_no_song_history))
         } else {
             detail.topTracks.forEachIndexed { index, track ->
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -113,8 +135,11 @@ private fun ArtistDetailScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(track.name, style = MaterialTheme.typography.titleMedium)
                             Text(
-                                track.plays.toString() + " plays · " +
+                                stringResource(
+                                    R.string.plays_and_time,
+                                    track.plays,
                                     formatListeningTime(track.listeningMs),
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
@@ -126,10 +151,7 @@ private fun ArtistDetailScreen(
 }
 
 @Composable
-private fun DetailMessage(
-    message: String,
-    onBack: () -> Unit,
-) {
+private fun DetailMessage(message: String, onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -137,7 +159,7 @@ private fun DetailMessage(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         TextButton(onClick = onBack) {
-            Text("Back")
+            Text(stringResource(R.string.action_back))
         }
         Text(message, style = MaterialTheme.typography.titleLarge)
     }
@@ -160,8 +182,8 @@ private fun MetricCard(
     }
 }
 
-private fun formatDate(epochMs: Long?): String {
-    if (epochMs == null) return "Unknown"
+private fun formatDate(epochMs: Long?, unknown: String): String {
+    if (epochMs == null) return unknown
     return SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date(epochMs))
 }
 
@@ -169,9 +191,6 @@ private fun formatListeningTime(milliseconds: Long): String {
     val totalMinutes = milliseconds / 60_000
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
-    return if (hours > 0) {
-        hours.toString() + "h " + minutes.toString() + "m"
-    } else {
-        minutes.toString() + "m"
-    }
+    return if (hours > 0) hours.toString() + "h " + minutes.toString() + "m"
+    else minutes.toString() + "m"
 }

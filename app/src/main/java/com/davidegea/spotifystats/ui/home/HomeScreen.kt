@@ -20,6 +20,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.davidegea.spotifystats.R
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -70,17 +72,17 @@ private fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "Your listening",
+            text = stringResource(R.string.home_title),
             style = MaterialTheme.typography.headlineMedium,
         )
         Text(
-            text = "Private, offline analytics from the history stored on this device.",
+            text = stringResource(R.string.home_body),
             style = MaterialTheme.typography.bodyLarge,
         )
 
         DateRangeControls(state.period, state.customRange, onPeriodSelected, onCustom)
         if (state.loading) {
-            LoadingStateCard(message = "Loading your listening history…")
+            LoadingStateCard(message = stringResource(R.string.home_loading))
             return@Column
         }
         state.error?.let {
@@ -90,8 +92,8 @@ private fun HomeScreen(
 
         if (state.totalPlays == 0L) {
             EmptyStateCard(
-                title = "No listening data in this period",
-                body = "Choose another period or import your Spotify Extended Streaming History. Your files are processed locally on this device.",
+                title = stringResource(R.string.home_empty_period_title),
+                body = stringResource(R.string.home_empty_period_body),
             )
             ImportHistorySection()
             return@Column
@@ -102,12 +104,12 @@ private fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             StatCard(
-                label = "Plays",
+                label = stringResource(R.string.metric_plays),
                 value = state.totalPlays.toString(),
                 modifier = Modifier.weight(1f),
             )
             StatCard(
-                label = "Listening",
+                label = stringResource(R.string.metric_listening),
                 value = formatListeningTime(state.totalListeningMs),
                 modifier = Modifier.weight(1f),
             )
@@ -118,12 +120,12 @@ private fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             StatCard(
-                label = "Tracks",
+                label = stringResource(R.string.metric_tracks),
                 value = state.uniqueTracks.toString(),
                 modifier = Modifier.weight(1f),
             )
             StatCard(
-                label = "Artists",
+                label = stringResource(R.string.metric_artists),
                 value = state.uniqueArtists.toString(),
                 modifier = Modifier.weight(1f),
             )
@@ -154,7 +156,7 @@ private fun HomeScreen(
 
         if (state.recentActivity.isNotEmpty()) {
             Text(
-                text = "Recent activity",
+                text = stringResource(R.string.home_recent_activity),
                 style = MaterialTheme.typography.titleLarge,
             )
             state.recentActivity.forEach { item ->
@@ -166,7 +168,7 @@ private fun HomeScreen(
         }
 
         Text(
-            text = "Import more history",
+            text = stringResource(R.string.home_import_more),
             style = MaterialTheme.typography.titleLarge,
         )
         ImportHistorySection()
@@ -179,10 +181,10 @@ private fun TrackTopCard(
     onClick: () -> Unit,
 ) {
     TopEntityCard(
-        eyebrow = "Top song",
+        eyebrow = stringResource(R.string.home_top_song),
         title = item.name,
         subtitle = item.artistName,
-        footer = item.plays.toString() + " plays · " + formatListeningTime(item.listeningMs),
+        footer = stringResource(R.string.plays_and_time, item.plays, formatListeningTime(item.listeningMs)),
         onClick = onClick,
     )
 }
@@ -193,10 +195,10 @@ private fun ArtistTopCard(
     onClick: () -> Unit,
 ) {
     TopEntityCard(
-        eyebrow = "Top artist",
+        eyebrow = stringResource(R.string.home_top_artist),
         title = item.name,
         subtitle = null,
-        footer = item.plays.toString() + " plays · " + formatListeningTime(item.listeningMs),
+        footer = stringResource(R.string.plays_and_time, item.plays, formatListeningTime(item.listeningMs)),
         onClick = onClick,
     )
 }
@@ -207,10 +209,10 @@ private fun AlbumTopCard(
     onClick: () -> Unit,
 ) {
     TopEntityCard(
-        eyebrow = "Top album",
+        eyebrow = stringResource(R.string.home_top_album),
         title = item.name,
         subtitle = item.artistName,
-        footer = item.plays.toString() + " plays · " + formatListeningTime(item.listeningMs),
+        footer = stringResource(R.string.plays_and_time, item.plays, formatListeningTime(item.listeningMs)),
         onClick = onClick,
     )
 }

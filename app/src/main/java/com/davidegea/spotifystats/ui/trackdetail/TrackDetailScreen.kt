@@ -15,9 +15,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.domain.model.TrackDetail
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -32,11 +34,11 @@ fun TrackDetailRoute(
 
     when (val current = state) {
         TrackDetailUiState.Loading -> DetailMessage(
-            message = "Loading track…",
+            message = stringResource(R.string.detail_loading_track),
             onBack = onBack,
         )
         TrackDetailUiState.NotFound -> DetailMessage(
-            message = "Track not found.",
+            message = stringResource(R.string.detail_track_not_found),
             onBack = onBack,
         )
         is TrackDetailUiState.Content -> TrackDetailScreen(
@@ -51,6 +53,8 @@ private fun TrackDetailScreen(
     detail: TrackDetail,
     onBack: () -> Unit,
 ) {
+    val unknown = stringResource(R.string.detail_unknown)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,18 +63,12 @@ private fun TrackDetailScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         TextButton(onClick = onBack) {
-            Text("Back")
+            Text(stringResource(R.string.action_back))
         }
 
-        Text(
-            text = detail.name,
-            style = MaterialTheme.typography.headlineMedium,
-        )
+        Text(detail.name, style = MaterialTheme.typography.headlineMedium)
         detail.artistName?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Text(it, style = MaterialTheme.typography.titleMedium)
         }
 
         Row(
@@ -78,12 +76,12 @@ private fun TrackDetailScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             MetricCard(
-                label = "Plays",
+                label = stringResource(R.string.metric_plays),
                 value = detail.totalPlays.toString(),
                 modifier = Modifier.weight(1f),
             )
             MetricCard(
-                label = "Listening",
+                label = stringResource(R.string.metric_listening),
                 value = formatListeningTime(detail.totalListeningMs),
                 modifier = Modifier.weight(1f),
             )
@@ -94,21 +92,60 @@ private fun TrackDetailScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text("Listening history", style = MaterialTheme.typography.titleMedium)
-                Text("First played: " + formatDate(detail.firstPlayedAtEpochMs))
-                Text("Last played: " + formatDate(detail.lastPlayedAtEpochMs))
-                Text("Skip rate: " + formatSkipRate(detail))
-                Text("Meaningful listens (≥30 s): ${detail.meaningfulPlays}")
-                Text("Average completion: " + (detail.averageCompletion?.let { String.format(Locale.getDefault(), "%.1f%%", it * 100) } ?: "Unknown track duration"))
-                if (detail.averageCompletion != null) Text("Completed (≥90%): ${detail.completedPlays}")
-                Text("Favourite local hour: " + (detail.favouriteHour?.let { String.format(Locale.getDefault(), "%02d:00", it) } ?: "—"))
-                Text("Longest listening streak: ${detail.longestStreakDays} consecutive days")
+                Text(
+                    stringResource(R.string.detail_listening_history),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    stringResource(
+                        R.string.detail_first_played,
+                        formatDate(detail.firstPlayedAtEpochMs, unknown),
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.detail_last_played,
+                        formatDate(detail.lastPlayedAtEpochMs, unknown),
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.detail_skip_rate,
+                        formatSkipRate(detail, unknown),
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.detail_meaningful_listens,
+                        detail.meaningfulPlays,
+                    ),
+                )
+                val completion = detail.averageCompletion?.let {
+                    String.format(Locale.getDefault(), "%.1f%%", it * 100)
+                } ?: stringResource(R.string.detail_unknown_duration)
+                Text(stringResource(R.string.detail_average_completion, completion))
+                if (detail.averageCompletion != null) {
+                    Text(stringResource(R.string.detail_completed, detail.completedPlays))
+                }
+                val favouriteHour = detail.favouriteHour?.let {
+                    String.format(Locale.getDefault(), "%02d:00", it)
+                } ?: "—"
+                Text(stringResource(R.string.detail_favourite_hour, favouriteHour))
+                Text(
+                    stringResource(
+                        R.string.detail_longest_streak,
+                        detail.longestStreakDays,
+                    ),
+                )
             }
         }
 
-        Text("Plays by year", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(R.string.detail_plays_by_year),
+            style = MaterialTheme.typography.titleLarge,
+        )
         if (detail.playsByYear.isEmpty()) {
-            Text("No play history available.")
+            Text(stringResource(R.string.detail_no_play_history))
         } else {
             detail.playsByYear.forEach { year ->
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -120,7 +157,11 @@ private fun TrackDetailScreen(
                     ) {
                         Text(year.year.toString(), style = MaterialTheme.typography.titleMedium)
                         Text(
-                            year.plays.toString() + " plays · " + formatListeningTime(year.listeningMs),
+                            stringResource(
+                                R.string.plays_and_time,
+                                year.plays,
+                                formatListeningTime(year.listeningMs),
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
@@ -142,7 +183,7 @@ private fun DetailMessage(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         TextButton(onClick = onBack) {
-            Text("Back")
+            Text(stringResource(R.string.action_back))
         }
         Text(message, style = MaterialTheme.typography.titleLarge)
     }
@@ -165,14 +206,14 @@ private fun MetricCard(
     }
 }
 
-private fun formatSkipRate(detail: TrackDetail): String {
-    if (detail.skipKnownPlays == 0L) return "Unknown"
+private fun formatSkipRate(detail: TrackDetail, unknown: String): String {
+    if (detail.skipKnownPlays == 0L) return unknown
     val rate = detail.skippedPlays.toDouble() * 100.0 / detail.skipKnownPlays.toDouble()
     return String.format(Locale.getDefault(), "%.1f%%", rate)
 }
 
-private fun formatDate(epochMs: Long?): String {
-    if (epochMs == null) return "Unknown"
+private fun formatDate(epochMs: Long?, unknown: String): String {
+    if (epochMs == null) return unknown
     return SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date(epochMs))
 }
 
