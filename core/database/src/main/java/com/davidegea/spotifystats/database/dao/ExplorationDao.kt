@@ -18,10 +18,12 @@ interface ExplorationDao {
     @Query("""
         SELECT COUNT(*) AS events,
             COALESCE(SUM(CASE WHEN pe.ms_played >= 30000 THEN 1 ELSE 0 END), 0) AS meaningful,
-            COALESCE(SUM(CASE WHEN t.duration_ms > 0 THEN 1 ELSE 0 END), 0) AS durationKnown,
-            COALESCE(SUM(CASE WHEN t.duration_ms > 0 AND pe.ms_played >= t.duration_ms * 0.9 THEN 1 ELSE 0 END), 0) AS completed,
-            AVG(CASE WHEN t.duration_ms > 0 THEN MIN(pe.ms_played * 1.0 / t.duration_ms, 1.0) END) AS averageCompletion
-        FROM play_events pe JOIN tracks t ON t.id = pe.track_id
+            COALESCE(SUM(CASE WHEN COALESCE(tm.duration_ms, t.duration_ms) > 0 THEN 1 ELSE 0 END), 0) AS durationKnown,
+            COALESCE(SUM(CASE WHEN COALESCE(tm.duration_ms, t.duration_ms) > 0 AND pe.ms_played >= COALESCE(tm.duration_ms, t.duration_ms) * 0.9 THEN 1 ELSE 0 END), 0) AS completed,
+            AVG(CASE WHEN COALESCE(tm.duration_ms, t.duration_ms) > 0 THEN MIN(pe.ms_played * 1.0 / COALESCE(tm.duration_ms, t.duration_ms), 1.0) END) AS averageCompletion
+        FROM play_events pe
+        JOIN tracks t ON t.id = pe.track_id
+        LEFT JOIN track_metadata tm ON tm.track_id = t.id
         WHERE pe.played_at BETWEEN :from AND :to
     """)
     suspend fun quality(from: Long, to: Long): QualityRow
