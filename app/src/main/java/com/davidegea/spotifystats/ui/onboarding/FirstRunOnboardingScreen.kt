@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
 fun FirstRunOnboardingScreen(
     onImportStarted: () -> Unit,
     onImportFinished: () -> Unit,
+    onContinueWithoutImport: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -54,8 +56,15 @@ fun FirstRunOnboardingScreen(
             onImportFinished = onImportFinished,
         )
 
+        OutlinedButton(
+            onClick = onContinueWithoutImport,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Explore without importing")
+        }
+
         Text(
-            text = "You can safely import the same export again later: duplicate play events are ignored.",
+            text = "You can safely import the same export again later: duplicate play events are ignored. Exploring without data only skips onboarding for this app session.",
             style = MaterialTheme.typography.bodySmall,
         )
     }
