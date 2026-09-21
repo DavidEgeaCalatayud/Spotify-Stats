@@ -13,6 +13,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,13 +22,28 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @Composable
 fun ImportHistorySection(
+    onImportStarted: () -> Unit = {},
+    onImportFinished: () -> Unit = {},
     viewModel: ImportHistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(state) {
+        when (state) {
+            is ImportHistoryUiState.Complete,
+            is ImportHistoryUiState.Failed,
+            -> onImportFinished()
+            else -> Unit
+        }
+    }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments(),
     ) { uris ->
-        viewModel.importDocuments(uris.map { it.toString() })
+        if (uris.isNotEmpty()) {
+            onImportStarted()
+            viewModel.importDocuments(uris.map { it.toString() })
+        }
     }
 
     Card(modifier = Modifier.fillMaxWidth()) {
