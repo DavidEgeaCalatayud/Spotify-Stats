@@ -9,7 +9,7 @@
     <string name="onboarding_title">Your complete Spotify history, privately</string>
     <string name="onboarding_body">Turn your official Extended Streaming History into detailed analytics without uploading it to a server.</string>
     <string name="onboarding_import_title">1 · Import</string>
-    <string name="onboarding_import_body">Choose the ZIP or JSON files from Spotify&apos;s Extended Streaming History export.</string>
+    <string name="onboarding_import_body">Choose the ZIP or JSON files from Spotify\'s Extended Streaming History export.</string>
     <string name="onboarding_local_title">2 · Analyse locally</string>
     <string name="onboarding_local_body">Room/SQLite stores your listening events on this device. IP addresses and user-agent fields are ignored.</string>
     <string name="onboarding_explore_title">3 · Explore offline</string>
