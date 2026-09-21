@@ -28,7 +28,8 @@ fun WrappedRoute(onBack: () -> Unit, viewModel: WrappedViewModel = hiltViewModel
     var year by rememberSaveable { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR).toString()) }
     var month by rememberSaveable { mutableStateOf((Calendar.getInstance().get(Calendar.MONTH) + 1).toString()) }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
-    var sharing by remember { mutableStateOf(false) }
+    var sharingSequence by remember { mutableStateOf(false) }
+    var sharingSingle by remember { mutableStateOf(false) }
     val invalidYearMessage = stringResource(R.string.wrapped_invalid_year)
     val invalidYearMonthMessage = stringResource(R.string.wrapped_invalid_year_month)
     val shareErrorMessage = stringResource(R.string.wrapped_share_error)
@@ -71,16 +72,64 @@ fun WrappedRoute(onBack: () -> Unit, viewModel: WrappedViewModel = hiltViewModel
                     Text(stringResource(R.string.wrapped_top_album, it.albums.firstOrNull()?.name ?: "—"))
                 }
             }
-            Button(enabled = !sharing && it.overview.totalPlays > 0, onClick = {
-                sharing = true
-                scope.launch {
-                    try { RecapCardRenderer.share(context, it) }
-                    catch (cancelled: CancellationException) { throw cancelled }
-                    catch (_: Exception) { error = shareErrorMessage }
-                    finally { sharing = false }
-                }
-            }) { Text(stringResource(if (sharing) R.string.wrapped_creating else R.string.wrapped_share)) }
-            Text(stringResource(R.string.wrapped_share_note), style = MaterialTheme.typography.bodySmall)
+            Button(
+                enabled = !sharingSequence && !sharingSingle && it.overview.totalPlays > 0,
+                onClick = {
+                    sharingSequence = true
+                    scope.launch {
+                        try {
+                            RecapCardRenderer.shareSequence(context, it)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (_: Exception) {
+                            error = shareErrorMessage
+                        } finally {
+                            sharingSequence = false
+                        }
+                    }
+                },
+            ) {
+                Text(
+                    stringResource(
+                        if (sharingSequence) {
+                            R.string.wrapped_creating_sequence
+                        } else {
+                            R.string.wrapped_share_sequence
+                        },
+                    ),
+                )
+            }
+            OutlinedButton(
+                enabled = !sharingSequence && !sharingSingle && it.overview.totalPlays > 0,
+                onClick = {
+                    sharingSingle = true
+                    scope.launch {
+                        try {
+                            RecapCardRenderer.share(context, it)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (_: Exception) {
+                            error = shareErrorMessage
+                        } finally {
+                            sharingSingle = false
+                        }
+                    }
+                },
+            ) {
+                Text(
+                    stringResource(
+                        if (sharingSingle) {
+                            R.string.wrapped_creating
+                        } else {
+                            R.string.wrapped_share_single
+                        },
+                    ),
+                )
+            }
+            Text(
+                stringResource(R.string.wrapped_share_sequence_note),
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }

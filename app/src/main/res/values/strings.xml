@@ -225,4 +225,20 @@
     <string name="advanced_no_highlights">No highlights meet the thresholds in this period.</string>
     <string name="advanced_thresholds">On repeat requires 10 events and twice the preceding count. Rediscovery requires a gap of 90 days. These describe the imported records, not your complete life unless you imported it all.</string>
 
+
+    <string name="wrapped_share_sequence">Share story sequence</string>
+    <string name="wrapped_share_single">Share overview card</string>
+    <string name="wrapped_creating_sequence">Creating stories…</string>
+    <string name="wrapped_share_sequence_note">Creates four 9:16 images locally and opens Android\'s share chooser. No listening data is uploaded automatically.</string>
+    <string name="wrapped_share_chooser">Share your Wrapped</string>
+    <string name="wrapped_card_overview">01 / OVERVIEW</string>
+    <string name="wrapped_card_top_song_story">02 / YOUR TOP SONG</string>
+    <string name="wrapped_card_top_artist_story">03 / YOUR TOP ARTIST</string>
+    <string name="wrapped_card_discovery_story">04 / YOUR STORY</string>
+    <string name="wrapped_card_plays">%1$d plays</string>
+    <string name="wrapped_card_listening_time">%1$s listening</string>
+    <string name="wrapped_card_discoveries_count">%1$d new artists in this period</string>
+    <string name="wrapped_card_top_album_story">Top album · %1$s</string>
+
+    <string name="wrapped_card_discoveries_label">artists first recorded in this period</string>
 </resources>
