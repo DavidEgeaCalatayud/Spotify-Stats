@@ -13,15 +13,17 @@ code; shipping acceptance and remaining limits are in [the audit](audit-2026-09-
 - [x] CI tests, lint, APK build and downloadable reports
 - [ ] Physical-device release acceptance, signing and store distribution
 
-## Import
+## Import and onboarding
 
+- [x] Database-driven first-run onboarding with automatic post-import transition
 - [x] SAF multiple JSON/ZIP selection and streaming parsing
 - [x] Privacy-field filtering and basic export/value validation
 - [x] Normalized batched transactional writes
 - [x] Progress, summary, cancellation and safe re-import
 - [x] Real-database idempotency and rollback/cancellation tests
 - [ ] Resumable background import and persisted per-file diagnostics
-- [ ] Recovery from individual malformed records without abandoning the JSON document
+- [x] Recovery from individually decodable malformed records without abandoning later JSON rows
+- [ ] Recovery from structurally truncated/corrupted JSON objects
 
 ## Core analytics and UI
 

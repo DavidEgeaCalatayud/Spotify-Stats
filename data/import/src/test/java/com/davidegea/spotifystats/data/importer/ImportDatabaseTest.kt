@@ -62,4 +62,32 @@ class ImportDatabaseTest {
         val result = repository.importDocuments(listOf(document("[${record(-1)},${record(86_400_001)}]"))) {}
         assertEquals(2L, result.skippedRecords); assertEquals(0L, result.insertedEvents)
     }
+    @Test fun malformedRecordIsSkippedWithoutAbandoningLaterValidRows() = runBlocking {
+        val first = """{"ts":"2026-09-20T12:00:00Z","ms_played":30000,"master_metadata_track_name":"First","master_metadata_album_artist_name":"Artist","spotify_track_uri":"spotify:track:first"}"""
+        val malformed = """{"ts":"2026-09-20T12:01:00Z","ms_played":"bad","master_metadata_track_name":"Broken","master_metadata_album_artist_name":"Artist"}"""
+        val last = """{"ts":"2026-09-20T12:02:00Z","ms_played":45000,"master_metadata_track_name":"Last","master_metadata_album_artist_name":"Artist","spotify_track_uri":"spotify:track:last"}"""
+
+        val result = repository.importDocuments(
+            listOf(document("[" + first + "," + malformed + "," + last + "]")),
+        ) {}
+
+        assertEquals(3L, result.processedRecords)
+        assertEquals(2L, result.insertedEvents)
+        assertEquals(1L, result.skippedRecords)
+        assertEquals(0, result.failedDocuments)
+        assertEquals(
+            2L,
+            db.listeningHistoryDao().observeOverviewStats(0, Long.MAX_VALUE).first().totalPlays,
+        )
+    }
+
+    @Test fun nonArrayJsonIsReportedAsDocumentFailure() = runBlocking {
+        val result = repository.importDocuments(
+            listOf(document("""{"not":"spotify-history"}""")),
+        ) {}
+
+        assertEquals(1, result.failedDocuments)
+        assertEquals(0L, result.insertedEvents)
+    }
+
 }
