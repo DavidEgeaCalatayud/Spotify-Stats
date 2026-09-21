@@ -85,20 +85,27 @@ object RecapCardRenderer {
         val uris = ArrayList(files.map { contentUri(context, it) })
         val first = uris.first()
 
-        val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-            type = "image/png"
-            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-            clipData = ClipData.newRawUri("Wrapped", first).apply {
-                uris.drop(1).forEach { addItem(ClipData.Item(it)) }
-            }
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        val intent = buildSequenceShareIntent(uris)
         context.startActivity(
             Intent.createChooser(
                 intent,
                 context.getString(R.string.wrapped_share_chooser),
             ),
         )
+    }
+
+    internal fun buildSequenceShareIntent(
+        uris: ArrayList<Uri>,
+    ): Intent {
+        require(uris.isNotEmpty()) { "At least one story URI is required" }
+        return Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+            type = "image/png"
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+            clipData = ClipData.newRawUri("Wrapped", uris.first()).apply {
+                uris.drop(1).forEach { addItem(ClipData.Item(it)) }
+            }
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
     }
 
     internal suspend fun renderSequence(
