@@ -65,3 +65,53 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         )
     }
 }
+
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS track_metadata (
+                track_id INTEGER NOT NULL PRIMARY KEY,
+                provider TEXT NOT NULL,
+                provider_track_id TEXT,
+                duration_ms INTEGER,
+                artwork_path TEXT,
+                refreshed_at INTEGER NOT NULL,
+                FOREIGN KEY(track_id) REFERENCES tracks(id)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_track_metadata_provider " +
+                "ON track_metadata(provider)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_track_metadata_refreshed_at " +
+                "ON track_metadata(refreshed_at)",
+        )
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS album_metadata (
+                album_id INTEGER NOT NULL PRIMARY KEY,
+                provider TEXT NOT NULL,
+                release_date TEXT,
+                artwork_path TEXT,
+                refreshed_at INTEGER NOT NULL,
+                FOREIGN KEY(album_id) REFERENCES albums(id)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_album_metadata_provider " +
+                "ON album_metadata(provider)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_album_metadata_refreshed_at " +
+                "ON album_metadata(refreshed_at)",
+        )
+    }
+}
