@@ -44,6 +44,17 @@ ANDROID_KEY_PASSWORD
 
 The Gradle configuration only enables the release signing config when all values are available.
 
+For GitHub's manual **Signed Android Release Candidate** workflow, configure these repository/environment secrets:
+
+```text
+ANDROID_KEYSTORE_BASE64
+ANDROID_KEYSTORE_PASSWORD
+ANDROID_KEY_ALIAS
+ANDROID_KEY_PASSWORD
+```
+
+`ANDROID_KEYSTORE_BASE64` is the base64 representation of the user-owned keystore. The workflow materializes it only in the runner temporary directory, verifies the APK/AAB signatures, checks the release APK privacy contract, emits SHA-256 checksums, uploads the signed RC artifact and deletes the temporary keystore file. Do not commit the keystore or its passwords.
+
 ## Physical-device acceptance
 
 Run these checks on at least one current Android device and one API 24-compatible device before V1:
@@ -62,6 +73,8 @@ Run these checks on at least one current Android device and one API 24-compatibl
 - accessibility: font scaling, TalkBack labels, touch targets and contrast.
 
 Record Android version, device model, export event count, import elapsed time and observed failures.
+
+Use [the structured V1 device acceptance report](device-acceptance-v1.md) so every RC is evaluated against the same criteria.
 
 ## Profiling on Android
 
@@ -86,10 +99,25 @@ Before public release:
 - [ ] final app name/icon/branding;
 - [ ] signed AAB generated from protected CI/local signing inputs;
 - [ ] privacy policy reviewed and hosted at a public URL;
-- [ ] screenshots and store listing;
+- [ ] screenshots and store listing (start from [the V1 listing draft](play-store-listing-v1.md));
 - [ ] internal/closed Play testing;
 - [ ] data safety form checked against the actual shipped permissions/features;
 - [ ] crash/ANR acceptance on the selected device matrix;
 - [ ] version code incremented for every upload.
 
 Spotify Stats is an unofficial application and is not affiliated with or endorsed by Spotify.
+
+
+## CI privacy guardrail
+
+The Android CI inspects the built release APK, not only the source manifest. The build fails if the merged release manifest contains `android.permission.INTERNET`. This protects the offline V1 against accidental permission additions from future dependencies.
+
+## Release candidate acceptance
+
+A release-candidate artifact may be generated automatically by CI, but it is not a V1 release until:
+
+1. CI is green on the exact commit;
+2. the signed build is tested on physical Android hardware;
+3. the device acceptance report has no open release blockers;
+4. backup/restore and real share targets have been exercised;
+5. the final Play Console data-safety answers are checked against the uploaded binary.

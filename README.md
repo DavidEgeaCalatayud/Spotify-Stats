@@ -7,8 +7,8 @@ A local-first Android application that turns Spotify Extended Streaming History 
 - **Local-first:** raw history and analytics live in Room/SQLite on the device.
 - **Privacy-first:** no application backend, account system or cloud database is required.
 - **Offline-first:** imported history remains usable without a network connection.
-- **Spotify API is optional:** the core product must work from official history exports even if API quotas change.
-- **Explainable metrics:** raw play events, meaningful listens, completions and skips are separate concepts.
+- **Spotify API is optional:** the core product works from official history exports even if API quotas change.
+- **Explainable metrics:** raw play events, meaningful listens, completions and skips remain separate concepts.
 
 ## Architecture
 
@@ -16,61 +16,48 @@ A local-first Android application that turns Spotify Extended Streaming History 
 Spotify Extended History
           |
           v
-      Importer
+  Streaming importer
           |
           v
      Room / SQLite
           |
           v
-   Analytics Engine
+   Analytics engine
           |
           v
-Compose UI / Wrapped
+Compose UI / Calendar / Wrapped
 ```
 
-Module boundaries:
+The UI follows **UI -> ViewModel -> UseCase -> Repository -> Room/import/optional adapter**. Spotify OAuth/API integration is intentionally not a source of truth for the offline V1.
 
-```text
-app
- |-- core:designsystem
- |-- domain
- |    \-- core:model
- |-- data:history
- |    |-- domain
- |    \-- core:database
- |-- data:import
- |    |-- domain
- |    \-- core:database
- \-- core:database
-```
+## V1 release-candidate status
 
-The UI follows **UI -> ViewModel -> UseCase -> Repository -> Room/import/API**. Spotify OAuth/API integration will be an optional adapter, not the source of truth for the product.
+The current V1 codebase includes:
 
-## Current status
+- Kotlin, Jetpack Compose, Material 3 and Hilt;
+- Clean Architecture / MVVM-oriented module boundaries;
+- Room/SQLite schema v3 with tested non-destructive migrations;
+- normalized albums, artists, tracks and track-artists;
+- SHA-256 deduplicated play events;
+- Spotify Extended Streaming History JSON/ZIP import;
+- streaming parsing with per-record malformed-row recovery;
+- foreground WorkManager execution with persisted per-file diagnostics and resume;
+- scalable keyset-paginated listening history;
+- indexed local search;
+- Home, Library, entity details, Insights, Calendar and You/privacy surfaces;
+- today, 7d, 30d, 6 months, current year, all-time and custom ranges;
+- historical artist ranks and richer album analytics;
+- explainable sessions, trends, discoveries, rediscoveries and repeat highlights;
+- local Wrapped recaps plus single and multi-card 9:16 sharing;
+- validated portable backup/restore and local deletion;
+- English and Spanish UI;
+- CI tests, lint, debug APK and release APK/AAB artifacts.
 
-The MVP foundation currently includes:
+The offline V1 intentionally has **no Android INTERNET permission**. CI inspects the generated release APK and fails if that privacy contract changes.
 
-- Kotlin + Jetpack Compose + Material 3
-- Clean Architecture / MVVM-oriented module boundaries
-- Hilt dependency injection
-- Room/SQLite schema v2 with a non-destructive v1 migration
-- normalized albums, artists, tracks and track-artists
-- deduplicated play events via a unique event hash
-- streaming JSON and ZIP import through Android's document picker
-- import progress and import summary
-- indexed track, artist and album rankings
-- 7-day, 30-day, current-year and all-time filters
-- track drill-down metrics with yearly listening history
-- artist drill-down metrics with top-song rankings
-- four-destination navigation: Home / Library / Insights / You
-- GitHub Actions CI and Dependabot
+The remaining V1 gate is physical-device acceptance and production signing/distribution. Optional metadata enrichment, SQLCipher, Spotify Live Sync and MediaSession capture are V1.x/V1.1 work and do not block the offline release.
 
-The offline completion branch adds indexed global search, custom dates, a listening
-calendar, advanced highlights/session estimates, richer entity details, local Wrapped
-cards, and validated backup/restore/deletion. It keeps the four main destinations.
-
-See [the current audit](docs/audit-2026-09-20.md) for implemented features, verification
-and the remaining roadmap. **Spotify live sync and SQLCipher are not implemented.**
+See [the release guide](docs/release.md), [V1 device acceptance report](docs/device-acceptance-v1.md), [Play Store listing draft](docs/play-store-listing-v1.md) and [privacy policy](docs/privacy-policy.md).
 
 ## Privacy model
 
@@ -93,20 +80,22 @@ The repository includes the Gradle Wrapper pinned to Gradle 9.4.1 with distribut
 ./gradlew :domain:testDebugUnitTest :core:database:testDebugUnitTest \
   :data:import:testDebugUnitTest :data:history:testDebugUnitTest \
   :data:privacy:testDebugUnitTest :app:testDebugUnitTest \
-  :app:lintDebug :app:assembleDebug
+  :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease
 ```
 
-The CI uploads `spotify-stats-debug`, a `spotify-stats-release-candidate` artifact containing release APK/AAB outputs, and `verification-reports` (tests, lint, Room schemas and the generated sample share card). Release signing is opt-in through environment secrets; no keystore belongs in the repository. See [the release guide](docs/release.md) and [privacy policy](docs/privacy-policy.md).
+CI uploads `spotify-stats-debug`, `spotify-stats-release-candidate` and verification reports. A separate manual workflow can produce signed RC artifacts from user-owned GitHub signing secrets; no keystore belongs in the repository.
 
-A reproducible desktop SQL check:
+A reproducible desktop SQL check is also available:
 
 ```bash
 python scripts/benchmark_sql.py --events 300000
 ```
 
+Desktop benchmarks validate query design but are not a substitute for Android hardware profiling.
+
 ## Roadmap
 
-The roadmap is tracked in [docs/roadmap.md](docs/roadmap.md). The first MVP is intentionally narrow: import Extended Streaming History, persist it locally, expose overview/rankings/details, support date filters, and work offline.
+The current release boundary and post-V1 work are tracked in [docs/roadmap.md](docs/roadmap.md) and issue #34.
 
 ## License
 

@@ -250,4 +250,6 @@
     <string name="detail_album_year_history">Escucha del álbum por año</string>
     <string name="advanced_on_repeat_change">%1$d eventos · +%2$d frente al intervalo anterior · %3$s×</string>
 
+    <string name="you_app_version">Versión %1$s (%2$d)</string>
+
 </resources>
