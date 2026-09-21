@@ -5,6 +5,10 @@ import com.davidegea.spotifystats.domain.model.TimeRange
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Computes an artist's descriptive rank inside exactly the supplied listening range.
+ * No causal or preference inference is performed.
+ */
 class ObserveArtistRangeRankUseCase(
     private val repository: ListeningHistoryRepository,
 ) {
