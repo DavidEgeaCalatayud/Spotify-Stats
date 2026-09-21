@@ -19,7 +19,8 @@ class NavigationSmokeTest {
             compose.onAllNodesWithText("Choose history files").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Your complete Spotify history, privately").assertExists()
-        compose.onNodeWithText("Explore without importing").performClick()
+        compose.onNodeWithText("Explore without importing").performScrollTo().performClick()
+        compose.waitForIdle()
         compose.waitUntil(10_000) {
             compose.onAllNodesWithText("Library").fetchSemanticsNodes().isNotEmpty()
         }
