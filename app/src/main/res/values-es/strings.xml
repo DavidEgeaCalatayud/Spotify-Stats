@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Spotify Stats</string>
+
+    <string name="nav_home">Inicio</string>
+    <string name="nav_library">Biblioteca</string>
+    <string name="nav_insights">Insights</string>
+    <string name="nav_you">Tú</string>
+
+    <string name="onboarding_title">Toda tu historia de Spotify, de forma privada</string>
+    <string name="onboarding_body">Convierte tu historial oficial de reproducción ampliado en estadísticas detalladas sin subirlo a ningún servidor.</string>
+    <string name="onboarding_import_title">1 · Importa</string>
+    <string name="onboarding_import_body">Selecciona el ZIP o los JSON del Extended Streaming History de Spotify.</string>
+    <string name="onboarding_local_title">2 · Analiza en local</string>
+    <string name="onboarding_local_body">Room/SQLite guarda tus reproducciones en este dispositivo. Se ignoran las direcciones IP y los datos de user-agent.</string>
+    <string name="onboarding_explore_title">3 · Explora sin conexión</string>
+    <string name="onboarding_explore_body">Inicio, Biblioteca, Insights, Calendario, búsqueda y Wrapped siguen funcionando sin cuenta ni conexión a Internet.</string>
+    <string name="onboarding_explore_without_import">Explorar sin importar</string>
+    <string name="onboarding_reimport_note">Puedes importar el mismo historial más adelante sin riesgo: las reproducciones duplicadas se ignoran. Explorar sin datos solo omite el onboarding durante esta sesión.</string>
+
+    <string name="state_loading">Cargando…</string>
+    <string name="state_no_data">Todavía no hay datos de escucha</string>
+    <string name="state_no_data_body">Importa tu Extended Streaming History de Spotify para empezar a explorar tu historial musical.</string>
+    <string name="state_retry">Reintentar</string>
+</resources>
