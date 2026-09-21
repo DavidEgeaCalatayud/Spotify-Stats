@@ -101,6 +101,13 @@ private fun AlbumDetailScreen(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(stringResource(R.string.detail_different_songs, detail.uniqueTracks))
+                Text(stringResource(R.string.detail_active_days, detail.activeDays))
+                Text(
+                    stringResource(
+                        R.string.detail_meaningful_album_listens,
+                        detail.meaningfulPlays,
+                    ),
+                )
                 Text(
                     stringResource(
                         R.string.detail_peak_month,
@@ -119,6 +126,38 @@ private fun AlbumDetailScreen(
                         formatDate(detail.lastPlayedAtEpochMs, unknown),
                     ),
                 )
+            }
+        }
+
+        Text(
+            stringResource(R.string.detail_album_year_history),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        if (detail.playsByYear.isEmpty()) {
+            Text(stringResource(R.string.detail_no_play_history))
+        } else {
+            detail.playsByYear.forEach { year ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            year.year.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            stringResource(
+                                R.string.plays_and_time,
+                                year.plays,
+                                formatListeningTime(year.listeningMs),
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
             }
         }
 

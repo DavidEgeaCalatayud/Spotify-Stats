@@ -174,4 +174,103 @@ class AnalyticsDatabaseTest {
         }
     }
 
+
+    @Test fun artistRanksAndAlbumHistoryAreCorrectAcrossYearsAndRanges() = runBlocking {
+        seed()
+        db.importDao().insertArtist(
+            ArtistEntity(
+                id = 2,
+                spotifyId = null,
+                identityKey = "artist-two",
+                name = "Second Artist",
+                normalizedName = "second artist",
+            ),
+        )
+        db.importDao().insertTrack(
+            TrackEntity(
+                id = 2,
+                spotifyUri = "spotify:track:second",
+                identityKey = "track-two",
+                name = "Second Track",
+                albumId = null,
+                durationMs = 100_000,
+            ),
+        )
+        db.importDao().insertTrackArtist(
+            TrackArtistCrossRef(
+                trackId = 2,
+                artistId = 2,
+                position = 0,
+            ),
+        )
+
+        fun event(
+            hash: String,
+            trackId: Long,
+            instant: String,
+            msPlayed: Long = 40_000,
+        ) = PlayEventEntity(
+            id = 0,
+            eventHash = hash,
+            trackId = trackId,
+            playedAtEpochMs = java.time.Instant.parse(instant).toEpochMilli(),
+            msPlayed = msPlayed,
+            platform = null,
+            country = null,
+            reasonStart = null,
+            reasonEnd = null,
+            shuffle = null,
+            skipped = null,
+            offline = null,
+            privateSession = null,
+            source = PlaySource.SPOTIFY_EXPORT,
+        )
+
+        val events = listOf(
+            event("artist-1-2025-a", 1, "2025-06-01T12:00:00Z", 20_000),
+            event("artist-1-2025-b", 1, "2025-06-02T12:00:00Z"),
+            event("artist-2-2025-a", 2, "2025-06-01T13:00:00Z"),
+            event("artist-2-2025-b", 2, "2025-06-02T13:00:00Z"),
+            event("artist-2-2025-c", 2, "2025-06-03T13:00:00Z"),
+            event("artist-1-2026-a", 1, "2026-06-01T12:00:00Z"),
+            event("artist-1-2026-b", 1, "2026-06-01T13:00:00Z"),
+            event("artist-1-2026-c", 1, "2026-06-01T14:00:00Z"),
+            event("artist-1-2026-d", 1, "2026-06-01T15:00:00Z"),
+            event("artist-2-2026-a", 2, "2026-06-01T16:00:00Z"),
+        )
+        events.forEach { db.importDao().insertPlayEvent(it) }
+
+        val ranks = db.listeningHistoryDao()
+            .observeArtistYearRanks(artistId = 1)
+            .first()
+        assertEquals(listOf(2025, 2026), ranks.map { it.year })
+        assertEquals(listOf(2L, 1L), ranks.map { it.artistRank })
+        assertEquals(listOf(2L, 4L), ranks.map { it.plays })
+
+        val range2025 = db.listeningHistoryDao()
+            .observeArtistRangeRank(
+                artistId = 1,
+                fromInclusive = java.time.Instant.parse("2025-01-01T00:00:00Z").toEpochMilli(),
+                toInclusive = java.time.Instant.parse("2025-12-31T23:59:59Z").toEpochMilli(),
+            )
+            .first()
+        assertNotNull(range2025)
+        assertEquals(2L, range2025?.artistRank)
+        assertEquals(2L, range2025?.plays)
+        assertEquals(1L, range2025?.uniqueTracks)
+
+        val album = db.listeningHistoryDao()
+            .observeAlbumDetail(albumId = 1)
+            .first()
+        assertNotNull(album)
+        assertEquals(3L, album?.activeDays)
+        assertEquals(5L, album?.meaningfulPlays)
+
+        val albumYears = db.listeningHistoryDao()
+            .observeAlbumListeningByYear(albumId = 1)
+            .first()
+        assertEquals(listOf(2025, 2026), albumYears.map { it.year })
+        assertEquals(listOf(2L, 4L), albumYears.map { it.plays })
+    }
+
 }
