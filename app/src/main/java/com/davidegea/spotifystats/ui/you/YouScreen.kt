@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.davidegea.spotifystats.BuildConfig
 import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.ui.components.isoDate
 import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
@@ -133,6 +134,16 @@ fun YouRoute(
             style = MaterialTheme.typography.titleLarge,
         )
         Text(stringResource(R.string.you_spotify_live_sync_body))
+
+        Text(
+            text = stringResource(
+                R.string.you_app_version,
+                BuildConfig.VERSION_NAME,
+                BuildConfig.VERSION_CODE,
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 
     pendingRestore?.let { uri ->

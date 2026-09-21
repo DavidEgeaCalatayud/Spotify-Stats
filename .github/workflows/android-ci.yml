@@ -51,6 +51,18 @@ jobs:
           :app:assembleRelease
           :app:bundleRelease
 
+      - name: Verify release APK privacy contract
+        shell: bash
+        run: |
+          APK="$(find app/build/outputs/apk/release -type f -name '*.apk' | head -n 1)"
+          test -n "$APK"
+          ANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          "$ANALYZER" manifest permissions "$APK" | tee app/build/reports/release-permissions.txt
+          if grep -q 'android.permission.INTERNET' app/build/reports/release-permissions.txt; then
+            echo "Release APK unexpectedly requests android.permission.INTERNET" >&2
+            exit 1
+          fi
+
       - name: Upload verification reports and schemas
         if: always()
         uses: actions/upload-artifact@v4
@@ -61,6 +73,7 @@ jobs:
             **/build/test-results/
             app/build/reports/lint-results-debug.*
             app/build/reports/share-card.png
+            app/build/reports/release-permissions.txt
             core/database/schemas/
 
       - name: Upload debug APK
