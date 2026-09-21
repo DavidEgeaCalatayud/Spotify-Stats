@@ -13,7 +13,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
 
 @Composable
@@ -30,25 +32,25 @@ fun FirstRunOnboardingScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "Your complete Spotify history, privately",
+            text = stringResource(R.string.onboarding_title),
             style = MaterialTheme.typography.headlineMedium,
         )
         Text(
-            text = "Spotify Stats turns your official Extended Streaming History into detailed analytics without uploading it to a server.",
+            text = stringResource(R.string.onboarding_body),
             style = MaterialTheme.typography.bodyLarge,
         )
 
         PrincipleCard(
-            title = "1 · Import",
-            body = "Choose the ZIP or JSON files from Spotify's Extended Streaming History export.",
+            title = stringResource(R.string.onboarding_import_title),
+            body = stringResource(R.string.onboarding_import_body),
         )
         PrincipleCard(
-            title = "2 · Analyse locally",
-            body = "Room/SQLite stores your listening events on this device. IP addresses and user-agent fields are ignored.",
+            title = stringResource(R.string.onboarding_local_title),
+            body = stringResource(R.string.onboarding_local_body),
         )
         PrincipleCard(
-            title = "3 · Explore offline",
-            body = "Home, Library, Insights, Calendar, search and Wrapped continue working without an account or network connection.",
+            title = stringResource(R.string.onboarding_explore_title),
+            body = stringResource(R.string.onboarding_explore_body),
         )
 
         ImportHistorySection(
@@ -60,11 +62,11 @@ fun FirstRunOnboardingScreen(
             onClick = onContinueWithoutImport,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Explore without importing")
+            Text(stringResource(R.string.onboarding_explore_without_import))
         }
 
         Text(
-            text = "You can safely import the same export again later: duplicate play events are ignored. Exploring without data only skips onboarding for this app session.",
+            text = stringResource(R.string.onboarding_reimport_note),
             style = MaterialTheme.typography.bodySmall,
         )
     }
