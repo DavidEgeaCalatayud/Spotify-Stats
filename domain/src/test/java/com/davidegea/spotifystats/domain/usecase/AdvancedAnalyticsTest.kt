@@ -3,6 +3,7 @@ package com.davidegea.spotifystats.domain.usecase
 import com.davidegea.spotifystats.domain.analytics.DateRanges
 import com.davidegea.spotifystats.domain.analytics.SessionAccumulator
 import com.davidegea.spotifystats.domain.model.ListeningTrend
+import com.davidegea.spotifystats.domain.model.Obsession
 import org.junit.Assert.*
 import org.junit.Test
 import java.util.TimeZone
@@ -39,4 +40,15 @@ class AdvancedAnalyticsTest {
     @Test(expected = IllegalArgumentException::class) fun rejectsInvalidDates() { DateRanges.dates("2026-02-30", "2026-03-01") }
     @Test(expected = IllegalArgumentException::class) fun rejectsReversedRanges() { DateRanges.dates("2026-03-30", "2026-03-01") }
     @Test fun zeroBaselineDoesNotInventPercentage() { assertNull(ListeningTrend(10, 0).change) }
+    @Test fun obsessionChangeIsExplicitAndPurelyDescriptive() {
+        val item = Obsession(
+            artistId = 1,
+            name = "Artist",
+            plays = 30,
+            previousPlays = 12,
+        )
+        assertEquals(18L, item.deltaPlays)
+        assertEquals(2.5, item.multiplier!!, 0.0001)
+    }
+
 }

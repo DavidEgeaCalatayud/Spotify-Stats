@@ -30,6 +30,10 @@ class ObserveAlbumDetailUseCaseTest {
                 listeningMs = 50_000,
             ),
         )
+        val yearly = listOf(
+            YearlyListening(2025, 700, 40_000),
+            YearlyListening(2026, 1031, 50_000),
+        )
         val repository = AlbumFakeRepository(
             detail = AlbumDetail(
                 id = 2,
@@ -42,18 +46,21 @@ class ObserveAlbumDetailUseCaseTest {
                 lastPlayedAtEpochMs = 2,
             ),
             tracks = tracks,
+            yearly = yearly,
         )
 
         val result = ObserveAlbumDetailUseCase(repository)(2).first()
 
         assertEquals(14L, result?.uniqueTracks)
         assertEquals(tracks, result?.topTracks)
+        assertEquals(yearly, result?.playsByYear)
     }
 }
 
 private class AlbumFakeRepository(
     private val detail: AlbumDetail?,
     private val tracks: List<TrackRanking>,
+    private val yearly: List<YearlyListening>,
 ) : ListeningHistoryRepository {
     override fun observeOverviewStats(): Flow<OverviewStats> =
         flowOf(OverviewStats(0, 0, 0, 0))
@@ -94,6 +101,10 @@ private class AlbumFakeRepository(
         albumId: Long,
         limit: Int,
     ): Flow<List<TrackRanking>> = flowOf(tracks.take(limit))
+
+    override fun observeAlbumListeningByYear(
+        albumId: Long,
+    ): Flow<List<YearlyListening>> = flowOf(yearly)
 
     override fun observeListeningHistory(
         fromInclusive: Long,
