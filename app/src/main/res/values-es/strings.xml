@@ -225,4 +225,20 @@
     <string name="advanced_no_highlights">Ningún destacado alcanza los umbrales en este periodo.</string>
     <string name="advanced_thresholds">“En bucle” requiere 10 eventos y el doble que en el intervalo anterior. Redescubrimiento requiere una pausa de 90 días. Estas métricas describen los registros importados, no toda tu vida musical salvo que hayas importado todo el historial.</string>
 
+
+    <string name="wrapped_share_sequence">Compartir secuencia de stories</string>
+    <string name="wrapped_share_single">Compartir tarjeta resumen</string>
+    <string name="wrapped_creating_sequence">Creando stories…</string>
+    <string name="wrapped_share_sequence_note">Crea cuatro imágenes 9:16 localmente y abre el selector de compartir de Android. No se suben datos de escucha automáticamente.</string>
+    <string name="wrapped_share_chooser">Compartir tu Wrapped</string>
+    <string name="wrapped_card_overview">01 / RESUMEN</string>
+    <string name="wrapped_card_top_song_story">02 / TU CANCIÓN PRINCIPAL</string>
+    <string name="wrapped_card_top_artist_story">03 / TU ARTISTA PRINCIPAL</string>
+    <string name="wrapped_card_discovery_story">04 / TU HISTORIA</string>
+    <string name="wrapped_card_plays">%1$d reproducciones</string>
+    <string name="wrapped_card_listening_time">%1$s de escucha</string>
+    <string name="wrapped_card_discoveries_count">%1$d artistas nuevos en este periodo</string>
+    <string name="wrapped_card_top_album_story">Álbum principal · %1$s</string>
+
+    <string name="wrapped_card_discoveries_label">artistas registrados por primera vez en este periodo</string>
 </resources>
