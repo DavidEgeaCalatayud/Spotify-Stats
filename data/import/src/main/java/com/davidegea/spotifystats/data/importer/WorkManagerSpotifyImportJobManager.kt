@@ -14,11 +14,15 @@ import com.davidegea.spotifystats.database.dao.ImportJobDao
 import com.davidegea.spotifystats.database.entity.ImportDocumentDiagnosticEntity
 import com.davidegea.spotifystats.database.entity.ImportRunEntity
 import com.davidegea.spotifystats.domain.model.ImportDocument
+import com.davidegea.spotifystats.domain.model.ImportDocumentDiagnostic
+import com.davidegea.spotifystats.domain.model.ImportDocumentStatus
 import com.davidegea.spotifystats.domain.model.ImportJobSnapshot
 import com.davidegea.spotifystats.domain.model.ImportJobStatus
 import com.davidegea.spotifystats.domain.repository.SpotifyImportJobManager
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class WorkManagerSpotifyImportJobManager(
@@ -29,22 +33,40 @@ class WorkManagerSpotifyImportJobManager(
 ) : SpotifyImportJobManager {
 
     override fun observeLatestJob(): Flow<ImportJobSnapshot?> =
-        importJobDao.observeLatestRun().map { row ->
-            row?.let {
-                ImportJobSnapshot(
-                    id = it.id,
-                    status = runCatching { ImportJobStatus.valueOf(it.status) }
-                        .getOrDefault(ImportJobStatus.FAILED),
-                    totalDocuments = it.totalDocuments,
-                    completedDocuments = it.completedDocuments,
-                    processedRecords = it.processedRecords,
-                    insertedEvents = it.insertedEvents,
-                    duplicateEvents = it.duplicateEvents,
-                    skippedRecords = it.skippedRecords,
-                    failedDocuments = it.failedDocuments,
-                    currentDocumentName = it.currentDocumentName,
-                    lastError = it.lastError,
-                )
+        importJobDao.observeLatestRun().flatMapLatest { row ->
+            if (row == null) {
+                flowOf(null)
+            } else {
+                importJobDao.observeDocuments(row.id).map { documents ->
+                    ImportJobSnapshot(
+                        id = row.id,
+                        status = runCatching { ImportJobStatus.valueOf(row.status) }
+                            .getOrDefault(ImportJobStatus.FAILED),
+                        totalDocuments = row.totalDocuments,
+                        completedDocuments = row.completedDocuments,
+                        processedRecords = row.processedRecords,
+                        insertedEvents = row.insertedEvents,
+                        duplicateEvents = row.duplicateEvents,
+                        skippedRecords = row.skippedRecords,
+                        failedDocuments = row.failedDocuments,
+                        currentDocumentName = row.currentDocumentName,
+                        lastError = row.lastError,
+                        documents = documents.map { document ->
+                            ImportDocumentDiagnostic(
+                                position = document.position,
+                                displayName = document.displayName,
+                                status = runCatching {
+                                    ImportDocumentStatus.valueOf(document.status)
+                                }.getOrDefault(ImportDocumentStatus.FAILED),
+                                processedRecords = document.processedRecords,
+                                insertedEvents = document.insertedEvents,
+                                duplicateEvents = document.duplicateEvents,
+                                skippedRecords = document.skippedRecords,
+                                errorMessage = document.errorMessage,
+                            )
+                        },
+                    )
+                }
             }
         }
 
