@@ -241,4 +241,13 @@
     <string name="wrapped_card_top_album_story">Álbum principal · %1$s</string>
 
     <string name="wrapped_card_discoveries_label">artistas registrados por primera vez en este periodo</string>
+
+    <string name="detail_rank_history">Ranking histórico</string>
+    <string name="detail_rank_year">%1$d · #%2$d · %3$d reproducciones · %4$s</string>
+    <string name="detail_no_rank_history">No hay datos de ranking histórico disponibles.</string>
+    <string name="detail_active_days">Días con escucha: %1$d</string>
+    <string name="detail_meaningful_album_listens">Escuchas significativas (≥30 s): %1$d</string>
+    <string name="detail_album_year_history">Escucha del álbum por año</string>
+    <string name="advanced_on_repeat_change">%1$d eventos · +%2$d frente al intervalo anterior · %3$s×</string>
+
 </resources>

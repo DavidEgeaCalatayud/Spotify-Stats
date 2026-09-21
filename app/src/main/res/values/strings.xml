@@ -241,4 +241,13 @@
     <string name="wrapped_card_top_album_story">Top album · %1$s</string>
 
     <string name="wrapped_card_discoveries_label">artists first recorded in this period</string>
+
+    <string name="detail_rank_history">Historical rank</string>
+    <string name="detail_rank_year">%1$d · #%2$d · %3$d plays · %4$s</string>
+    <string name="detail_no_rank_history">No historical rank data available.</string>
+    <string name="detail_active_days">Active listening days: %1$d</string>
+    <string name="detail_meaningful_album_listens">Meaningful listens (≥30 s): %1$d</string>
+    <string name="detail_album_year_history">Album listening by year</string>
+    <string name="advanced_on_repeat_change">%1$d events · +%2$d vs preceding interval · %3$s×</string>
+
 </resources>
