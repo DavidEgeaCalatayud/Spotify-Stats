@@ -92,6 +92,20 @@ data class YearlyListening(
     val listeningMs: Long,
 )
 
+data class ArtistYearRank(
+    val year: Int,
+    val rank: Long,
+    val plays: Long,
+    val listeningMs: Long,
+)
+
+data class ArtistRangeRank(
+    val rank: Long,
+    val plays: Long,
+    val listeningMs: Long,
+    val uniqueTracks: Long,
+)
+
 data class TrackDetail(
     val id: Long,
     val name: String,
@@ -120,6 +134,7 @@ data class ArtistDetail(
     val lastPlayedAtEpochMs: Long?,
     val allTimeRank: Long = 0,
     val mostActiveYear: Int? = null,
+    val rankByYear: List<ArtistYearRank> = emptyList(),
     val topTracks: List<TrackRanking> = emptyList(),
 )
 
@@ -133,6 +148,9 @@ data class AlbumDetail(
     val firstPlayedAtEpochMs: Long?,
     val lastPlayedAtEpochMs: Long?,
     val peakMonth: String? = null,
+    val activeDays: Long = 0,
+    val meaningfulPlays: Long = 0,
+    val playsByYear: List<YearlyListening> = emptyList(),
     val topTracks: List<TrackRanking> = emptyList(),
 )
 

@@ -70,6 +70,8 @@ data class AlbumDetailRow(
     val totalListeningMs: Long,
     val peakMonth: String?,
     val uniqueTracks: Long,
+    val activeDays: Long,
+    val meaningfulPlays: Long,
     val firstPlayedAtEpochMs: Long?,
     val lastPlayedAtEpochMs: Long?,
 )
@@ -89,6 +91,20 @@ data class YearlyListeningRow(
     val year: Int,
     val plays: Long,
     val listeningMs: Long,
+)
+
+data class ArtistYearRankRow(
+    val year: Int,
+    val artistRank: Long,
+    val plays: Long,
+    val listeningMs: Long,
+)
+
+data class ArtistRangeRankRow(
+    val artistRank: Long,
+    val plays: Long,
+    val listeningMs: Long,
+    val uniqueTracks: Long,
 )
 
 data class HourlyListeningRow(
@@ -382,6 +398,101 @@ interface ListeningHistoryDao {
     @Query(
         """
         SELECT
+            mine.year AS year,
+            (
+                1 + (
+                    SELECT COUNT(*)
+                    FROM (
+                        SELECT other_ta.artist_id, COUNT(*) AS otherPlays
+                        FROM play_events other_pe
+                        INNER JOIN track_artists other_ta
+                            ON other_ta.track_id = other_pe.track_id
+                        WHERE CAST(
+                            strftime(
+                                '%Y',
+                                other_pe.played_at / 1000,
+                                'unixepoch',
+                                'localtime'
+                            ) AS INTEGER
+                        ) = mine.year
+                        GROUP BY other_ta.artist_id
+                        HAVING COUNT(*) > mine.plays
+                    )
+                )
+            ) AS artistRank,
+            mine.plays AS plays,
+            mine.listeningMs AS listeningMs
+        FROM (
+            SELECT
+                CAST(
+                    strftime(
+                        '%Y',
+                        pe.played_at / 1000,
+                        'unixepoch',
+                        'localtime'
+                    ) AS INTEGER
+                ) AS year,
+                COUNT(*) AS plays,
+                COALESCE(SUM(pe.ms_played), 0) AS listeningMs
+            FROM play_events pe
+            INNER JOIN track_artists ta ON ta.track_id = pe.track_id
+            WHERE ta.artist_id = :artistId
+            GROUP BY year
+        ) mine
+        ORDER BY mine.year ASC
+        """,
+    )
+    fun observeArtistYearRanks(
+        artistId: Long,
+    ): Flow<List<ArtistYearRankRow>>
+
+    @Query(
+        """
+        SELECT
+            (
+                1 + (
+                    SELECT COUNT(*)
+                    FROM (
+                        SELECT other_ta.artist_id, COUNT(*) AS otherPlays
+                        FROM play_events other_pe
+                        INNER JOIN track_artists other_ta
+                            ON other_ta.track_id = other_pe.track_id
+                        WHERE other_pe.played_at >= :fromInclusive
+                          AND other_pe.played_at <= :toInclusive
+                        GROUP BY other_ta.artist_id
+                        HAVING COUNT(*) > (
+                            SELECT COUNT(*)
+                            FROM play_events mine_pe
+                            INNER JOIN track_artists mine_ta
+                                ON mine_ta.track_id = mine_pe.track_id
+                            WHERE mine_ta.artist_id = :artistId
+                              AND mine_pe.played_at >= :fromInclusive
+                              AND mine_pe.played_at <= :toInclusive
+                        )
+                    )
+                )
+            ) AS artistRank,
+            COUNT(pe.id) AS plays,
+            COALESCE(SUM(pe.ms_played), 0) AS listeningMs,
+            COUNT(DISTINCT pe.track_id) AS uniqueTracks
+        FROM play_events pe
+        INNER JOIN track_artists ta ON ta.track_id = pe.track_id
+        WHERE ta.artist_id = :artistId
+          AND pe.played_at >= :fromInclusive
+          AND pe.played_at <= :toInclusive
+        GROUP BY ta.artist_id
+        HAVING COUNT(pe.id) > 0
+        """,
+    )
+    fun observeArtistRangeRank(
+        artistId: Long,
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<ArtistRangeRankRow?>
+
+    @Query(
+        """
+        SELECT
             al.id AS id,
             al.name AS name,
             (
@@ -396,6 +507,16 @@ interface ListeningHistoryDao {
             COUNT(pe.id) AS totalPlays,
             COALESCE(SUM(pe.ms_played), 0) AS totalListeningMs,
             COUNT(DISTINCT CASE WHEN pe.id IS NOT NULL THEN t.id END) AS uniqueTracks,
+            COUNT(
+                DISTINCT CASE
+                    WHEN pe.id IS NOT NULL
+                    THEN date(pe.played_at / 1000, 'unixepoch', 'localtime')
+                END
+            ) AS activeDays,
+            COALESCE(
+                SUM(CASE WHEN pe.ms_played >= 30000 THEN 1 ELSE 0 END),
+                0
+            ) AS meaningfulPlays,
             (SELECT strftime('%Y-%m', monthly.played_at / 1000, 'unixepoch', 'localtime') FROM play_events monthly
                 JOIN tracks month_tracks ON month_tracks.id = monthly.track_id WHERE month_tracks.album_id = :albumId
                 GROUP BY strftime('%Y-%m', monthly.played_at / 1000, 'unixepoch', 'localtime') ORDER BY COUNT(*) DESC, strftime('%Y-%m', monthly.played_at / 1000, 'unixepoch', 'localtime') DESC LIMIT 1) AS peakMonth,
@@ -437,6 +558,30 @@ interface ListeningHistoryDao {
         albumId: Long,
         limit: Int,
     ): Flow<List<TrackRankingRow>>
+
+    @Query(
+        """
+        SELECT
+            CAST(
+                strftime(
+                    '%Y',
+                    pe.played_at / 1000,
+                    'unixepoch',
+                    'localtime'
+                ) AS INTEGER
+            ) AS year,
+            COUNT(*) AS plays,
+            COALESCE(SUM(pe.ms_played), 0) AS listeningMs
+        FROM play_events pe
+        INNER JOIN tracks t ON t.id = pe.track_id
+        WHERE t.album_id = :albumId
+        GROUP BY year
+        ORDER BY year ASC
+        """,
+    )
+    fun observeAlbumListeningByYear(
+        albumId: Long,
+    ): Flow<List<YearlyListeningRow>>
 
     @Query(
         """

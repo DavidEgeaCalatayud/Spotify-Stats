@@ -4,6 +4,8 @@ import com.davidegea.spotifystats.domain.model.AlbumDetail
 import com.davidegea.spotifystats.domain.model.AlbumRanking
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
+import com.davidegea.spotifystats.domain.model.ArtistRangeRank
+import com.davidegea.spotifystats.domain.model.ArtistYearRank
 import com.davidegea.spotifystats.domain.model.HourlyListening
 import com.davidegea.spotifystats.domain.model.ListeningHeatmapCell
 import com.davidegea.spotifystats.domain.model.ListeningHistoryCursor
@@ -69,12 +71,26 @@ interface ListeningHistoryRepository {
         limit: Int,
     ): Flow<List<TrackRanking>>
 
+    fun observeArtistYearRanks(
+        artistId: Long,
+    ): Flow<List<ArtistYearRank>> = flowOf(emptyList())
+
+    fun observeArtistRangeRank(
+        artistId: Long,
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<ArtistRangeRank?> = flowOf(null)
+
     fun observeAlbumDetail(albumId: Long): Flow<AlbumDetail?>
 
     fun observeAlbumTopTracks(
         albumId: Long,
         limit: Int,
     ): Flow<List<TrackRanking>>
+
+    fun observeAlbumListeningByYear(
+        albumId: Long,
+    ): Flow<List<YearlyListening>> = flowOf(emptyList())
 
     fun observeListeningHistory(
         fromInclusive: Long,

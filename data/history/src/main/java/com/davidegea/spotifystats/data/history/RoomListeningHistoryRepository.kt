@@ -5,6 +5,8 @@ import com.davidegea.spotifystats.domain.model.AlbumDetail
 import com.davidegea.spotifystats.domain.model.AlbumRanking
 import com.davidegea.spotifystats.domain.model.ArtistDetail
 import com.davidegea.spotifystats.domain.model.ArtistRanking
+import com.davidegea.spotifystats.domain.model.ArtistRangeRank
+import com.davidegea.spotifystats.domain.model.ArtistYearRank
 import com.davidegea.spotifystats.domain.model.HourlyListening
 import com.davidegea.spotifystats.domain.model.ListeningHeatmapCell
 import com.davidegea.spotifystats.domain.model.ListeningHistoryCursor
@@ -190,6 +192,40 @@ class RoomListeningHistoryRepository(
             rows.map { row -> row.toDomain() }
         }
 
+    override fun observeArtistYearRanks(
+        artistId: Long,
+    ): Flow<List<ArtistYearRank>> =
+        dao.observeArtistYearRanks(artistId).map { rows ->
+            rows.map { row ->
+                ArtistYearRank(
+                    year = row.year,
+                    rank = row.artistRank,
+                    plays = row.plays,
+                    listeningMs = row.listeningMs,
+                )
+            }
+        }
+
+    override fun observeArtistRangeRank(
+        artistId: Long,
+        fromInclusive: Long,
+        toInclusive: Long,
+    ): Flow<ArtistRangeRank?> =
+        dao.observeArtistRangeRank(
+            artistId = artistId,
+            fromInclusive = fromInclusive,
+            toInclusive = toInclusive,
+        ).map { row ->
+            row?.let {
+                ArtistRangeRank(
+                    rank = it.artistRank,
+                    plays = it.plays,
+                    listeningMs = it.listeningMs,
+                    uniqueTracks = it.uniqueTracks,
+                )
+            }
+        }
+
     override fun observeAlbumDetail(albumId: Long): Flow<AlbumDetail?> =
         dao.observeAlbumDetail(albumId).map { row ->
             row?.let {
@@ -201,6 +237,8 @@ class RoomListeningHistoryRepository(
                     totalPlays = it.totalPlays,
                     totalListeningMs = it.totalListeningMs,
                     uniqueTracks = it.uniqueTracks,
+                    activeDays = it.activeDays,
+                    meaningfulPlays = it.meaningfulPlays,
                     firstPlayedAtEpochMs = it.firstPlayedAtEpochMs,
                     lastPlayedAtEpochMs = it.lastPlayedAtEpochMs,
                 )
@@ -213,6 +251,19 @@ class RoomListeningHistoryRepository(
     ): Flow<List<TrackRanking>> =
         dao.observeAlbumTopTracks(albumId, limit).map { rows ->
             rows.map { row -> row.toDomain() }
+        }
+
+    override fun observeAlbumListeningByYear(
+        albumId: Long,
+    ): Flow<List<YearlyListening>> =
+        dao.observeAlbumListeningByYear(albumId).map { rows ->
+            rows.map { row ->
+                YearlyListening(
+                    year = row.year,
+                    plays = row.plays,
+                    listeningMs = row.listeningMs,
+                )
+            }
         }
 
     override fun observeListeningHistory(

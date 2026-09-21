@@ -16,6 +16,7 @@ import com.davidegea.spotifystats.domain.usecase.ImportSpotifyHistoryUseCase
 import com.davidegea.spotifystats.domain.usecase.LoadListeningHistoryPageUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveAlbumDetailUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveArtistDetailUseCase
+import com.davidegea.spotifystats.domain.usecase.ObserveArtistRangeRankUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveHomeDashboardUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveLibraryRankingsUseCase
 import com.davidegea.spotifystats.domain.usecase.ObserveListeningHabitsUseCase
@@ -121,6 +122,11 @@ object AppModule {
     fun provideObserveArtistDetailUseCase(
         repository: ListeningHistoryRepository,
     ): ObserveArtistDetailUseCase = ObserveArtistDetailUseCase(repository)
+
+    @Provides
+    fun provideObserveArtistRangeRankUseCase(
+        repository: ListeningHistoryRepository,
+    ): ObserveArtistRangeRankUseCase = ObserveArtistRangeRankUseCase(repository)
 
     @Provides
     fun provideObserveAlbumDetailUseCase(

@@ -117,6 +117,30 @@ private fun ArtistDetailScreen(
         }
 
         Text(
+            stringResource(R.string.detail_rank_history),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        if (detail.rankByYear.isEmpty()) {
+            Text(stringResource(R.string.detail_no_rank_history))
+        } else {
+            detail.rankByYear.forEach { year ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = stringResource(
+                            R.string.detail_rank_year,
+                            year.year,
+                            year.rank,
+                            year.plays,
+                            formatListeningTime(year.listeningMs),
+                        ),
+                        modifier = Modifier.padding(14.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
+
+        Text(
             stringResource(R.string.detail_top_songs),
             style = MaterialTheme.typography.titleLarge,
         )

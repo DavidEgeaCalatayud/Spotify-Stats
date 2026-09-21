@@ -18,7 +18,18 @@ data class SessionStats(
 data class DailyListening(val date: String, val plays: Long, val listeningMs: Long)
 data class Discovery(val artistId: Long, val name: String, val firstPlayedAt: Long, val plays: Long)
 data class Rediscovery(val trackId: Long, val name: String, val gapDays: Long)
-data class Obsession(val artistId: Long, val name: String, val plays: Long, val previousPlays: Long)
+data class Obsession(
+    val artistId: Long,
+    val name: String,
+    val plays: Long,
+    val previousPlays: Long,
+) {
+    val deltaPlays: Long
+        get() = plays - previousPlays
+
+    val multiplier: Double?
+        get() = previousPlays.takeIf { it > 0 }?.let { plays.toDouble() / it }
+}
 data class ForgottenTrack(val trackId: Long, val name: String, val previousPlays: Long)
 
 data class ListeningTrend(val currentMs: Long = 0, val previousMs: Long = 0) {

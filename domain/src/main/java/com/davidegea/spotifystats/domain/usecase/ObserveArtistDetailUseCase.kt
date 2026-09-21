@@ -15,8 +15,12 @@ class ObserveArtistDetailUseCase(
         combine(
             repository.observeArtistDetail(artistId),
             repository.observeArtistTopTracks(artistId, topTrackLimit),
-        ) { detail, topTracks ->
-            detail?.copy(topTracks = topTracks)
+            repository.observeArtistYearRanks(artistId),
+        ) { detail, topTracks, rankByYear ->
+            detail?.copy(
+                topTracks = topTracks,
+                rankByYear = rankByYear,
+            )
         }
 
     private companion object {

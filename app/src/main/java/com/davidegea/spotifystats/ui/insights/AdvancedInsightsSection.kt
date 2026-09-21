@@ -134,12 +134,16 @@ fun AdvancedInsightsSection(
     }
 
     data.obsessions.forEach { item ->
+        val multiplier = item.multiplier?.let {
+            String.format(locale, "%.1f", it)
+        } ?: "—"
         Highlight(
             stringResource(R.string.advanced_on_repeat, item.name),
             stringResource(
-                R.string.advanced_on_repeat_detail,
+                R.string.advanced_on_repeat_change,
                 item.plays,
-                item.previousPlays,
+                item.deltaPlays,
+                multiplier,
             ),
         ) {
             onArtist(item.artistId)
