@@ -56,8 +56,8 @@ Use one copy of this report per release candidate and device. Do not mark V1 acc
 - Keyset history / Load more:
 - Search:
 - Track detail:
-- Artist detail:
-- Album detail:
+- Artist detail, including yearly rank history:
+- Album detail, including active days/year history:
 - Insights:
 - Calendar:
 - Custom date ranges:
