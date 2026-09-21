@@ -26,6 +26,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.davidegea.spotifystats.R
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -35,13 +37,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private enum class LibrarySection(
-    val label: String,
-) {
-    Songs("Songs"),
-    Artists("Artists"),
-    Albums("Albums"),
-    History("History"),
+private enum class LibrarySection {
+    Songs,
+    Artists,
+    Albums,
+    History,
 }
 
 @Composable
@@ -61,24 +61,31 @@ fun LibraryRoute(
             .padding(horizontal = 16.dp),
     ) {
         Text(
-            text = "Library",
+            text = stringResource(R.string.library_title),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(top = 20.dp, bottom = 12.dp),
         )
 
         DateRangeControls(state.period, state.customRange, viewModel::selectPeriod, viewModel::selectCustom)
-        OutlinedTextField(query, { query = it; viewModel.search(it) }, label = { Text("Search songs, artists and albums") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(query, { query = it; viewModel.search(it) }, label = { Text(stringResource(R.string.library_search_hint)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         if (query.isNotBlank()) {
-            Text("Up to 100 matching results in this period", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.library_search_limit), style = MaterialTheme.typography.bodySmall)
             LazyColumn {
-                if (state.results.isEmpty()) item { Text("No matches. Try another name or date range.", Modifier.padding(16.dp)) }
+                if (state.results.isEmpty()) item { Text(stringResource(R.string.library_no_matches), Modifier.padding(16.dp)) }
                 items(state.results, key = { "${it.kind}:${it.id}" }) { result ->
                     Column(Modifier.fillMaxWidth().clickable {
                         when (result.kind) { "track" -> onTrackClick(result.id); "artist" -> onArtistClick(result.id); "album" -> onAlbumClick(result.id) }
                     }.padding(vertical = 12.dp)) {
                         Text(result.name, style = MaterialTheme.typography.titleMedium)
-                        Text("${result.kind} · ${result.plays} events" + (result.subtitle?.let { " · $it" } ?: ""))
+                        Text(
+                            stringResource(
+                                R.string.search_result_summary,
+                                localizedResultKind(result.kind),
+                                result.plays,
+                                result.subtitle?.let { " · " + it }.orEmpty(),
+                            ),
+                        )
                     }
                 }
             }
@@ -95,14 +102,14 @@ fun LibraryRoute(
                 FilterChip(
                     selected = section == candidate,
                     onClick = { section = candidate },
-                    label = { Text(candidate.label) },
+                    label = { Text(librarySectionLabel(candidate)) },
                 )
             }
         }
 
         if (section == LibrarySection.History) {
             Text(
-                text = "Loaded ${state.history.size} events in the selected period",
+                text = stringResource(R.string.library_loaded_events, state.history.size),
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(vertical = 8.dp),
             )
@@ -119,7 +126,7 @@ fun LibraryRoute(
                 LibrarySection.History -> state.history.size
             }
             if (currentCount == 0 && !(section == LibrarySection.History && state.historyLoading)) {
-                item { Text("No listening data in this period.", Modifier.padding(16.dp)) }
+                item { Text(stringResource(R.string.library_no_data_period), Modifier.padding(16.dp)) }
             }
             when (section) {
                 LibrarySection.Songs -> itemsIndexed(
@@ -191,14 +198,14 @@ fun LibraryRoute(
                 } else if (state.historyHasMore) {
                     item {
                         TextButton(onClick = viewModel::loadMoreHistory) {
-                            Text("Load more")
+                            Text(stringResource(R.string.library_load_more))
                         }
                     }
                 }
             } else if (currentCount >= state.limit) {
                 item {
                     TextButton(onClick = viewModel::loadMoreRankings) {
-                        Text("Load more")
+                        Text(stringResource(R.string.library_load_more))
                     }
                 }
             }
@@ -295,12 +302,31 @@ private fun HistoryRow(
             )
             if (item.skipped == true) {
                 Text(
-                    text = "Skipped",
+                    text = stringResource(R.string.library_skipped),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
         }
     }
+}
+
+
+@Composable
+private fun librarySectionLabel(section: LibrarySection): String = stringResource(
+    when (section) {
+        LibrarySection.Songs -> R.string.library_songs
+        LibrarySection.Artists -> R.string.library_artists
+        LibrarySection.Albums -> R.string.library_albums
+        LibrarySection.History -> R.string.library_history
+    },
+)
+
+@Composable
+private fun localizedResultKind(kind: String): String = when (kind) {
+    "track" -> stringResource(R.string.library_songs)
+    "artist" -> stringResource(R.string.library_artists)
+    "album" -> stringResource(R.string.library_albums)
+    else -> kind
 }
 
 private fun formatHistoryTimestamp(epochMs: Long): String =
