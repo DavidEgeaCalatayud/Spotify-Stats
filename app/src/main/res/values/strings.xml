@@ -136,4 +136,15 @@
     <string name="import_status_failed">failed</string>
     <string name="import_status_cancelled">cancelled</string>
 
+
+    <string name="wrapped_card_story">YOUR MUSIC STORY</string>
+    <string name="wrapped_card_recorded_events">recorded listening events</string>
+    <string name="wrapped_card_songs_artists">%1$d songs · %2$d artists</string>
+    <string name="wrapped_card_top_song">01 / TOP SONG</string>
+    <string name="wrapped_card_top_artist">02 / TOP ARTIST</string>
+    <string name="wrapped_card_top_album">03 / TOP ALBUM</string>
+    <string name="wrapped_card_discoveries">%1$d artists first recorded in this period</string>
+    <string name="wrapped_card_brand">SPOTIFY STATS · MADE ON MY DEVICE</string>
+    <string name="wrapped_card_disclaimer">Based on imported history · unofficial app</string>
+
 </resources>
