@@ -16,7 +16,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
@@ -45,7 +45,11 @@ jobs:
           :data:import:testDebugUnitTest
           :data:history:testDebugUnitTest
           :data:privacy:testDebugUnitTest
-          :app:lintDebug :app:testDebugUnitTest :app:assembleDebug
+          :app:lintDebug
+          :app:testDebugUnitTest
+          :app:assembleDebug
+          :app:assembleRelease
+          :app:bundleRelease
 
       - name: Upload verification reports and schemas
         if: always()
@@ -64,3 +68,11 @@ jobs:
         with:
           name: spotify-stats-debug
           path: app/build/outputs/apk/debug/*.apk
+
+      - name: Upload release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotify-stats-release-candidate
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab

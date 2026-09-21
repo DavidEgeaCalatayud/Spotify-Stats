@@ -5,6 +5,20 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val appVersionCode = providers.gradleProperty("APP_VERSION_CODE").orElse("1").get().toInt()
+val appVersionName = providers.gradleProperty("APP_VERSION_NAME").orElse("0.1.0-dev").get()
+
+val releaseKeystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
+val releaseKeystorePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").orNull
+val hasReleaseSigning = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.davidegea.spotifystats"
     compileSdk = 36
@@ -13,11 +27,33 @@ android {
         applicationId = "com.davidegea.spotifystats"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
     }
 
-    testOptions { unitTests.isIncludeAndroidResources = true }
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseKeystorePath))
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            isDebuggable = false
+            isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfigs.findByName("release")?.let { signingConfig = it }
+        }
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
