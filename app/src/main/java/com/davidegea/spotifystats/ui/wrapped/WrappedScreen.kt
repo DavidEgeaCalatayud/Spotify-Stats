@@ -29,6 +29,9 @@ fun WrappedRoute(onBack: () -> Unit, viewModel: WrappedViewModel = hiltViewModel
     var month by rememberSaveable { mutableStateOf((Calendar.getInstance().get(Calendar.MONTH) + 1).toString()) }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     var sharing by remember { mutableStateOf(false) }
+    val invalidYearMessage = stringResource(R.string.wrapped_invalid_year)
+    val invalidYearMonthMessage = stringResource(R.string.wrapped_invalid_year_month)
+    val shareErrorMessage = stringResource(R.string.wrapped_share_error)
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
         Text(stringResource(R.string.wrapped_title), style = MaterialTheme.typography.headlineLarge)
@@ -41,7 +44,7 @@ fun WrappedRoute(onBack: () -> Unit, viewModel: WrappedViewModel = hiltViewModel
         Row {
             TextButton(onClick = {
                 try { viewModel.selectCustom(DateRanges.dates("$year-01-01", "$year-12-31")); error = null }
-                catch (_: IllegalArgumentException) { error = context.getString(R.string.wrapped_invalid_year) }
+                catch (_: IllegalArgumentException) { error = invalidYearMessage }
             }) { Text(stringResource(R.string.wrapped_year_recap)) }
             TextButton(onClick = {
                 try {
@@ -50,7 +53,7 @@ fun WrappedRoute(onBack: () -> Unit, viewModel: WrappedViewModel = hiltViewModel
                     val from = String.format(Locale.ROOT, "%04d-%02d-01", y, m)
                     val to = String.format(Locale.ROOT, "%04d-%02d-%02d", y, m, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
                     viewModel.selectCustom(DateRanges.dates(from, to)); error = null
-                } catch (_: IllegalArgumentException) { error = context.getString(R.string.wrapped_invalid_year_month) }
+                } catch (_: IllegalArgumentException) { error = invalidYearMonthMessage }
             }) { Text(stringResource(R.string.wrapped_month_recap)) }
         }
         (error ?: state.error)?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -73,7 +76,7 @@ fun WrappedRoute(onBack: () -> Unit, viewModel: WrappedViewModel = hiltViewModel
                 scope.launch {
                     try { RecapCardRenderer.share(context, it) }
                     catch (cancelled: CancellationException) { throw cancelled }
-                    catch (_: Exception) { error = context.getString(R.string.wrapped_share_error) }
+                    catch (_: Exception) { error = shareErrorMessage }
                     finally { sharing = false }
                 }
             }) { Text(stringResource(if (sharing) R.string.wrapped_creating else R.string.wrapped_share)) }
