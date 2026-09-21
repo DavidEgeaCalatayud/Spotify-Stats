@@ -6,6 +6,12 @@ import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.usecase.ObserveHomeDashboardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.catch
+import com.davidegea.spotifystats.domain.model.TimeRange
+import com.davidegea.spotifystats.domain.usecase.ExploreListeningUseCase
+import com.davidegea.spotifystats.domain.usecase.AnalyticsTimeRangeResolver
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
@@ -15,15 +21,20 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     observeHomeDashboard: ObserveHomeDashboardUseCase,
+    explore: ExploreListeningUseCase,
 ) : ViewModel() {
 
     private val period = MutableStateFlow(AnalyticsPeriod.LAST_30_DAYS)
 
-    val uiState = period
-        .flatMapLatest { selected ->
-            observeHomeDashboard(selected).map { dashboard ->
+    private val custom = MutableStateFlow<TimeRange?>(null)
+    val uiState = combine(period, custom) { selected, range -> selected to range }
+        .flatMapLatest { (selected, range) ->
+            combine(observeHomeDashboard(selected, range), explore.daily(range ?: AnalyticsTimeRangeResolver().resolve(selected))) { dashboard, daily ->
                 HomeUiState(
                     period = selected,
+                    customRange = range,
+                    daily = daily,
+                    loading = false,
                     totalPlays = dashboard.overview.totalPlays,
                     totalListeningMs = dashboard.overview.totalListeningMs,
                     uniqueTracks = dashboard.overview.uniqueTracks,
@@ -33,7 +44,8 @@ class HomeViewModel @Inject constructor(
                     topAlbum = dashboard.topAlbum,
                     recentActivity = dashboard.recentActivity,
                 )
-            }
+            }.onStart { emit(HomeUiState(period = selected, customRange = range)) }
+                .catch { emit(HomeUiState(period = selected, customRange = range, loading = false, error = "Unable to read listening history.")) }
         }
         .stateIn(
             scope = viewModelScope,
@@ -41,7 +53,10 @@ class HomeViewModel @Inject constructor(
             initialValue = HomeUiState(),
         )
 
+    fun selectCustom(range: TimeRange) { custom.value = range }
+
     fun selectPeriod(period: AnalyticsPeriod) {
+        custom.value = null
         this.period.value = period
     }
 }

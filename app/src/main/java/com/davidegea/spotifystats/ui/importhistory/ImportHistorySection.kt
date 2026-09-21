@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
@@ -16,11 +17,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @Composable
 fun ImportHistorySection(
-    viewModel: ImportHistoryViewModel = viewModel(),
+    viewModel: ImportHistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val launcher = rememberLauncherForActivityResult(
@@ -42,6 +43,8 @@ fun ImportHistorySection(
                 text = "Select one or more JSON files, or a ZIP containing your Extended Streaming History. Processing stays on this device.",
                 style = MaterialTheme.typography.bodyMedium,
             )
+
+            Text("Request Extended streaming history from the Privacy settings of your Spotify account, then import the downloaded ZIP or audio JSON files. Regular account exports and podcasts are not supported.", style = MaterialTheme.typography.bodySmall)
 
             when (val current = state) {
                 ImportHistoryUiState.Idle -> Unit
@@ -68,6 +71,9 @@ fun ImportHistorySection(
                             " duplicates ignored · " + current.summary.skippedRecords +
                             " unsupported/invalid rows",
                     )
+                    if (current.summary.insertedEvents == 0L && current.summary.duplicateEvents == 0L) {
+                        Text("No supported music events found. Check that you selected Extended Streaming History audio files.")
+                    }
                     if (current.summary.failedDocuments > 0) {
                         Text(
                             text = current.summary.failedDocuments.toString() +
@@ -84,6 +90,7 @@ fun ImportHistorySection(
                 }
             }
 
+            if (state is ImportHistoryUiState.Importing) TextButton(onClick = viewModel::cancelImport) { Text("Cancel import") }
             Button(
                 onClick = {
                     launcher.launch(

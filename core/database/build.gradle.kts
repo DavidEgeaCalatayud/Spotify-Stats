@@ -12,6 +12,8 @@ android {
         minSdk = 24
     }
 
+    testOptions { unitTests.isIncludeAndroidResources = true }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -23,6 +25,9 @@ room {
 }
 
 dependencies {
+    testImplementation(libs.kotlinx.coroutines.core)
+    testImplementation(libs.junit)
+    testImplementation("org.robolectric:robolectric:4.17")
     implementation(project(":core:model"))
 
     implementation(libs.androidx.room.runtime)

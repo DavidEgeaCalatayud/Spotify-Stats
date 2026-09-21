@@ -17,7 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.davidegea.spotifystats.domain.model.TrackDetail
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -26,7 +26,7 @@ import java.util.Locale
 @Composable
 fun TrackDetailRoute(
     onBack: () -> Unit,
-    viewModel: TrackDetailViewModel = viewModel(),
+    viewModel: TrackDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -98,6 +98,11 @@ private fun TrackDetailScreen(
                 Text("First played: " + formatDate(detail.firstPlayedAtEpochMs))
                 Text("Last played: " + formatDate(detail.lastPlayedAtEpochMs))
                 Text("Skip rate: " + formatSkipRate(detail))
+                Text("Meaningful listens (≥30 s): ${detail.meaningfulPlays}")
+                Text("Average completion: " + (detail.averageCompletion?.let { String.format(Locale.getDefault(), "%.1f%%", it * 100) } ?: "Unknown track duration"))
+                if (detail.averageCompletion != null) Text("Completed (≥90%): ${detail.completedPlays}")
+                Text("Favourite local hour: " + (detail.favouriteHour?.let { String.format(Locale.getDefault(), "%02d:00", it) } ?: "—"))
+                Text("Longest listening streak: ${detail.longestStreakDays} consecutive days")
             }
         }
 

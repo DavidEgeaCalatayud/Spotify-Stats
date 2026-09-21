@@ -15,6 +15,17 @@ class AnalyticsTimeRangeResolver(
         val now = nowProvider()
 
         return when (period) {
+            AnalyticsPeriod.TODAY -> {
+                val calendar = Calendar.getInstance(timeZone).apply {
+                    timeInMillis = now
+                    set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+                }
+                TimeRange(calendar.timeInMillis, now)
+            }
+            AnalyticsPeriod.LAST_6_MONTHS -> {
+                val calendar = Calendar.getInstance(timeZone).apply { timeInMillis = now; add(Calendar.MONTH, -6) }
+                TimeRange(calendar.timeInMillis, now)
+            }
             AnalyticsPeriod.LAST_7_DAYS -> TimeRange(
                 fromInclusive = now - TimeUnit.DAYS.toMillis(7),
                 toInclusive = now,

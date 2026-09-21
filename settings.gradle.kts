@@ -25,3 +25,5 @@ include(
     ":data:history",
     ":data:import",
 )
+
+include(":data:privacy")

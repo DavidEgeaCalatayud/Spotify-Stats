@@ -33,7 +33,7 @@ Composition root, Android lifecycle, Hilt graph, navigation and feature UI.
 Cross-layer value types that have no feature orchestration.
 
 ### core:database
-Room database, entities, DAOs, type converters, schema exports and migrations.
+Room database, entities, DAOs, type converters, schema exports and migrations. Schema v2 adds external-content FTS4 indexes after the source tables. Never use destructive migration.
 
 ### core:designsystem
 Compose theme and reusable presentation primitives.
@@ -42,7 +42,16 @@ Compose theme and reusable presentation primitives.
 Repository contracts, analytics models and use cases.
 
 ### data:history
-Room-backed implementation of listening-history contracts. The streaming import adapter will be added here or split into data:import if its surface grows.
+Room-backed history and exploration repositories. SQL performs aggregations; session intervals stream from a cursor inside a consistent snapshot. Heavy transforms run away from the UI dispatcher.
+
+### data:import
+Streaming official JSON/ZIP input, normalization and batched writes. Cancellation propagates and progress counts only committed transactions.
+
+### data:privacy
+Logical portable backup, schema/value validation in a temporary database, transactional restore and local deletion. A shared bulk-operation mutex prevents replacement/deletion during an import.
+
+### Compose factories
+Navigation destinations retrieve `@HiltViewModel` classes via `hiltViewModel()`. A generic `viewModel()` factory on a NavBackStackEntry cannot construct injected models. The smoke test exercises the real activity and graph.
 
 ## Data model
 

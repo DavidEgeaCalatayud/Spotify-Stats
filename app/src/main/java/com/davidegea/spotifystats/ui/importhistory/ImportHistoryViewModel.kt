@@ -1,5 +1,7 @@
 package com.davidegea.spotifystats.ui.importhistory
 
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.davidegea.spotifystats.domain.model.ImportDocument
@@ -28,16 +30,26 @@ class ImportHistoryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ImportHistoryUiState>(ImportHistoryUiState.Idle)
     val uiState: StateFlow<ImportHistoryUiState> = _uiState.asStateFlow()
 
-    fun importDocuments(uriStrings: List<String>) {
-        if (uriStrings.isEmpty()) return
+    private var importJob: Job? = null
 
-        viewModelScope.launch {
+    fun cancelImport() {
+        importJob?.cancel()
+        _uiState.value = ImportHistoryUiState.Failed("Import cancelled. Completed batches are kept; you can safely import the same files again.")
+    }
+
+    fun importDocuments(uriStrings: List<String>) {
+        if (uriStrings.isEmpty() || _uiState.value is ImportHistoryUiState.Importing) return
+        _uiState.value = ImportHistoryUiState.Importing(ImportProgress(0, uriStrings.size, null, 0, 0, 0, 0))
+
+        importJob = viewModelScope.launch {
             val documents = uriStrings.distinct().map(::ImportDocument)
             try {
                 val summary = importSpotifyHistory(documents) { progress ->
                     _uiState.value = ImportHistoryUiState.Importing(progress)
                 }
                 _uiState.value = ImportHistoryUiState.Complete(summary)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (error: Exception) {
                 _uiState.value = ImportHistoryUiState.Failed(
                     error.message ?: "Import failed",

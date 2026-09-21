@@ -1,5 +1,6 @@
 package com.davidegea.spotifystats.domain.usecase
 
+import com.davidegea.spotifystats.domain.model.TimeRange
 import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.model.ListeningHabits
 import com.davidegea.spotifystats.domain.repository.ListeningHistoryRepository
@@ -12,8 +13,8 @@ class ObserveListeningHabitsUseCase(
     private val calculator: ListeningHabitsCalculator = ListeningHabitsCalculator(),
 ) {
 
-    operator fun invoke(period: AnalyticsPeriod): Flow<ListeningHabits> {
-        val range = rangeResolver.resolve(period)
+    operator fun invoke(period: AnalyticsPeriod, customRange: TimeRange? = null): Flow<ListeningHabits> {
+        val range = customRange ?: rangeResolver.resolve(period)
 
         return combine(
             repository.observeHourlyListening(

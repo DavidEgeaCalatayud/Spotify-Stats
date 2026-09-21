@@ -1,5 +1,9 @@
 package com.davidegea.spotifystats.ui.insights
 
+import com.davidegea.spotifystats.ui.components.DateRangeControls
+import com.davidegea.spotifystats.domain.model.TimeRange
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.model.ListeningHeatmapCell
 import java.text.DateFormatSymbols
@@ -26,13 +30,18 @@ import java.util.Locale
 
 @Composable
 fun InsightsRoute(
-    viewModel: InsightsViewModel = viewModel(),
+    onTrack: (Long) -> Unit,
+    onArtist: (Long) -> Unit,
+    onCalendar: () -> Unit,
+    viewModel: InsightsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     InsightsScreen(
         state = state,
         onPeriodSelected = viewModel::selectPeriod,
+        onCustom = viewModel::selectCustom,
+        onTrack = onTrack, onArtist = onArtist, onCalendar = onCalendar,
     )
 }
 
@@ -40,6 +49,8 @@ fun InsightsRoute(
 private fun InsightsScreen(
     state: InsightsUiState,
     onPeriodSelected: (AnalyticsPeriod) -> Unit,
+    onCustom: (TimeRange) -> Unit,
+    onTrack: (Long) -> Unit, onArtist: (Long) -> Unit, onCalendar: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -57,20 +68,10 @@ private fun InsightsScreen(
             style = MaterialTheme.typography.bodyLarge,
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            AnalyticsPeriod.entries.forEach { period ->
-                FilterChip(
-                    selected = state.period == period,
-                    onClick = { onPeriodSelected(period) },
-                    label = { Text(period.label) },
-                )
-            }
-        }
+        DateRangeControls(state.period, state.customRange, onPeriodSelected, onCustom)
+        TextButton(onClick = onCalendar) { Text("Open listening calendar") }
+        if (state.loading) { LinearProgressIndicator(Modifier.fillMaxWidth()); return@Column }
+        state.error?.let { Text(it, color = MaterialTheme.colorScheme.error); return@Column }
 
         if (state.heatmap.isEmpty()) {
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -149,6 +150,7 @@ private fun InsightsScreen(
             style = MaterialTheme.typography.bodySmall,
         )
         ListeningHeatmap(state.heatmap)
+        AdvancedInsightsSection(state.advanced, onTrack, onArtist)
     }
 }
 

@@ -44,6 +44,10 @@ data class TrackDetailRow(
     val lastPlayedAtEpochMs: Long?,
     val skippedPlays: Long,
     val skipKnownPlays: Long,
+    val meaningfulPlays: Long,
+    val averageCompletion: Double?,
+    val completedPlays: Long,
+    val favouriteHour: Int?,
 )
 
 data class ArtistDetailRow(
@@ -51,6 +55,8 @@ data class ArtistDetailRow(
     val name: String,
     val totalPlays: Long,
     val totalListeningMs: Long,
+    val allTimeRank: Long,
+    val mostActiveYear: Int?,
     val uniqueTracks: Long,
     val firstPlayedAtEpochMs: Long?,
     val lastPlayedAtEpochMs: Long?,
@@ -62,6 +68,7 @@ data class AlbumDetailRow(
     val artistName: String?,
     val totalPlays: Long,
     val totalListeningMs: Long,
+    val peakMonth: String?,
     val uniqueTracks: Long,
     val firstPlayedAtEpochMs: Long?,
     val lastPlayedAtEpochMs: Long?,
@@ -291,7 +298,13 @@ interface ListeningHistoryDao {
             MIN(pe.played_at) AS firstPlayedAtEpochMs,
             MAX(pe.played_at) AS lastPlayedAtEpochMs,
             COALESCE(SUM(CASE WHEN pe.skipped = 1 THEN 1 ELSE 0 END), 0) AS skippedPlays,
-            COALESCE(SUM(CASE WHEN pe.skipped IS NOT NULL THEN 1 ELSE 0 END), 0) AS skipKnownPlays
+            COALESCE(SUM(CASE WHEN pe.skipped IS NOT NULL THEN 1 ELSE 0 END), 0) AS skipKnownPlays,
+            COALESCE(SUM(CASE WHEN pe.ms_played >= 30000 THEN 1 ELSE 0 END), 0) AS meaningfulPlays,
+            AVG(CASE WHEN t.duration_ms > 0 THEN MIN(pe.ms_played * 1.0 / t.duration_ms, 1.0) END) AS averageCompletion,
+            COALESCE(SUM(CASE WHEN t.duration_ms > 0 AND pe.ms_played >= t.duration_ms * 0.9 THEN 1 ELSE 0 END), 0) AS completedPlays,
+            (SELECT CAST(strftime('%H', h.played_at / 1000, 'unixepoch', 'localtime') AS INTEGER)
+                FROM play_events h WHERE h.track_id = t.id GROUP BY strftime('%H', h.played_at / 1000, 'unixepoch', 'localtime')
+                ORDER BY SUM(h.ms_played) DESC, COUNT(*) DESC, strftime('%H', h.played_at / 1000, 'unixepoch', 'localtime') LIMIT 1) AS favouriteHour
         FROM tracks t
         LEFT JOIN play_events pe ON pe.track_id = t.id
         WHERE t.id = :trackId
@@ -303,7 +316,7 @@ interface ListeningHistoryDao {
     @Query(
         """
         SELECT
-            CAST(strftime('%Y', played_at / 1000, 'unixepoch') AS INTEGER) AS year,
+            CAST(strftime('%Y', played_at / 1000, 'unixepoch', 'localtime') AS INTEGER) AS year,
             COUNT(*) AS plays,
             COALESCE(SUM(ms_played), 0) AS listeningMs
         FROM play_events
@@ -314,6 +327,9 @@ interface ListeningHistoryDao {
     )
     fun observeTrackListeningByYear(trackId: Long): Flow<List<YearlyListeningRow>>
 
+    @Query("SELECT DISTINCT date(played_at / 1000, 'unixepoch', 'localtime') FROM play_events WHERE track_id = :trackId ORDER BY 1")
+    fun observeTrackDays(trackId: Long): Flow<List<String>>
+
     @Query(
         """
         SELECT
@@ -322,6 +338,13 @@ interface ListeningHistoryDao {
             COUNT(pe.id) AS totalPlays,
             COALESCE(SUM(pe.ms_played), 0) AS totalListeningMs,
             COUNT(DISTINCT CASE WHEN pe.id IS NOT NULL THEN ta.track_id END) AS uniqueTracks,
+            (SELECT 1 + COUNT(*) FROM (
+                SELECT ranked.artist_id, COUNT(*) AS plays FROM track_artists ranked
+                JOIN play_events ranked_pe ON ranked_pe.track_id = ranked.track_id GROUP BY ranked.artist_id
+            ) ranks WHERE ranks.plays > (SELECT COUNT(*) FROM track_artists mine JOIN play_events mine_pe ON mine_pe.track_id = mine.track_id WHERE mine.artist_id = :artistId)) AS allTimeRank,
+            (SELECT CAST(strftime('%Y', yearly.played_at / 1000, 'unixepoch', 'localtime') AS INTEGER)
+                FROM play_events yearly JOIN track_artists yearly_ta ON yearly_ta.track_id = yearly.track_id WHERE yearly_ta.artist_id = :artistId
+                GROUP BY strftime('%Y', yearly.played_at / 1000, 'unixepoch', 'localtime') ORDER BY COUNT(*) DESC, strftime('%Y', yearly.played_at / 1000, 'unixepoch', 'localtime') DESC LIMIT 1) AS mostActiveYear,
             MIN(pe.played_at) AS firstPlayedAtEpochMs,
             MAX(pe.played_at) AS lastPlayedAtEpochMs
         FROM artists a
@@ -373,6 +396,9 @@ interface ListeningHistoryDao {
             COUNT(pe.id) AS totalPlays,
             COALESCE(SUM(pe.ms_played), 0) AS totalListeningMs,
             COUNT(DISTINCT CASE WHEN pe.id IS NOT NULL THEN t.id END) AS uniqueTracks,
+            (SELECT strftime('%Y-%m', monthly.played_at / 1000, 'unixepoch', 'localtime') FROM play_events monthly
+                JOIN tracks month_tracks ON month_tracks.id = monthly.track_id WHERE month_tracks.album_id = :albumId
+                GROUP BY strftime('%Y-%m', monthly.played_at / 1000, 'unixepoch', 'localtime') ORDER BY COUNT(*) DESC, strftime('%Y-%m', monthly.played_at / 1000, 'unixepoch', 'localtime') DESC LIMIT 1) AS peakMonth,
             MIN(pe.played_at) AS firstPlayedAtEpochMs,
             MAX(pe.played_at) AS lastPlayedAtEpochMs
         FROM albums al

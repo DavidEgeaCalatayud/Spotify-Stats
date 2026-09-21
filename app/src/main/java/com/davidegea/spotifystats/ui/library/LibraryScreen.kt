@@ -1,5 +1,10 @@
 package com.davidegea.spotifystats.ui.library
 
+import com.davidegea.spotifystats.ui.components.DateRangeControls
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
 import java.text.SimpleDateFormat
@@ -43,9 +48,10 @@ fun LibraryRoute(
     onTrackClick: (Long) -> Unit,
     onArtistClick: (Long) -> Unit,
     onAlbumClick: (Long) -> Unit,
-    viewModel: LibraryViewModel = viewModel(),
+    viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var query by rememberSaveable { mutableStateOf("") }
     var section by remember { mutableStateOf(LibrarySection.Songs) }
 
     Column(
@@ -59,19 +65,23 @@ fun LibraryRoute(
             modifier = Modifier.padding(top = 20.dp, bottom = 12.dp),
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            AnalyticsPeriod.entries.forEach { period ->
-                FilterChip(
-                    selected = state.period == period,
-                    onClick = { viewModel.selectPeriod(period) },
-                    label = { Text(period.label) },
-                )
+        DateRangeControls(state.period, state.customRange, viewModel::selectPeriod, viewModel::selectCustom)
+        OutlinedTextField(query, { query = it; viewModel.search(it) }, label = { Text("Search songs, artists and albums") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        if (query.isNotBlank()) {
+            Text("Up to 100 matching results in this period", style = MaterialTheme.typography.bodySmall)
+            LazyColumn {
+                if (state.results.isEmpty()) item { Text("No matches. Try another name or date range.", Modifier.padding(16.dp)) }
+                items(state.results, key = { "${it.kind}:${it.id}" }) { result ->
+                    Column(Modifier.fillMaxWidth().clickable {
+                        when (result.kind) { "track" -> onTrackClick(result.id); "artist" -> onArtistClick(result.id); "album" -> onAlbumClick(result.id) }
+                    }.padding(vertical = 12.dp)) {
+                        Text(result.name, style = MaterialTheme.typography.titleMedium)
+                        Text("${result.kind} · ${result.plays} events" + (result.subtitle?.let { " · $it" } ?: ""))
+                    }
+                }
             }
+            return@Column
         }
 
         Row(
@@ -91,7 +101,7 @@ fun LibraryRoute(
 
         if (section == LibrarySection.History) {
             Text(
-                text = "Latest 250 plays in the selected period",
+                text = "Latest ${state.limit} events in the selected period",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(vertical = 8.dp),
             )
@@ -101,6 +111,13 @@ fun LibraryRoute(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            val currentCount = when (section) {
+                LibrarySection.Songs -> state.tracks.size
+                LibrarySection.Artists -> state.artists.size
+                LibrarySection.Albums -> state.albums.size
+                LibrarySection.History -> state.history.size
+            }
+            if (currentCount == 0) item { Text("No listening data in this period.", Modifier.padding(16.dp)) }
             when (section) {
                 LibrarySection.Songs -> itemsIndexed(
                     items = state.tracks,
@@ -154,6 +171,7 @@ fun LibraryRoute(
                     )
                 }
             }
+            if (currentCount >= state.limit) item { TextButton(onClick = viewModel::loadMore) { Text("Load more") } }
         }
     }
 }

@@ -3,6 +3,8 @@ package com.davidegea.spotifystats.domain.model
 enum class AnalyticsPeriod(
     val label: String,
 ) {
+    TODAY("Today"),
+    LAST_6_MONTHS("6 months"),
     LAST_7_DAYS("7 days"),
     LAST_30_DAYS("30 days"),
     THIS_YEAR("This year"),
@@ -101,6 +103,11 @@ data class TrackDetail(
     val skippedPlays: Long,
     val skipKnownPlays: Long,
     val playsByYear: List<YearlyListening> = emptyList(),
+    val meaningfulPlays: Long = 0,
+    val averageCompletion: Double? = null,
+    val completedPlays: Long = 0,
+    val favouriteHour: Int? = null,
+    val longestStreakDays: Int = 0,
 )
 
 data class ArtistDetail(
@@ -111,6 +118,8 @@ data class ArtistDetail(
     val uniqueTracks: Long,
     val firstPlayedAtEpochMs: Long?,
     val lastPlayedAtEpochMs: Long?,
+    val allTimeRank: Long = 0,
+    val mostActiveYear: Int? = null,
     val topTracks: List<TrackRanking> = emptyList(),
 )
 
@@ -123,6 +132,7 @@ data class AlbumDetail(
     val uniqueTracks: Long,
     val firstPlayedAtEpochMs: Long?,
     val lastPlayedAtEpochMs: Long?,
+    val peakMonth: String? = null,
     val topTracks: List<TrackRanking> = emptyList(),
 )
 

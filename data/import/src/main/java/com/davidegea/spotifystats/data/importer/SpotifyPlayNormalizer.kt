@@ -9,8 +9,8 @@ class SpotifyPlayNormalizer(
         val trackName = record.trackName?.trim()?.takeIf(String::isNotEmpty) ?: return null
         val artistName = record.artistName?.trim()?.takeIf(String::isNotEmpty) ?: return null
         val timestamp = record.timestamp?.trim()?.takeIf(String::isNotEmpty) ?: return null
-        val playedAt = timestampParser.parseEpochMillis(timestamp) ?: return null
-        val msPlayed = record.msPlayed?.takeIf { it >= 0 } ?: return null
+        val playedAt = timestampParser.parseEpochMillis(timestamp)?.takeIf { it in 0..7_289_654_399_999L } ?: return null
+        val msPlayed = record.msPlayed?.takeIf { it in 0..86_400_000L } ?: return null
 
         val artistIdentity = identityKeys.artist(artistName)
         val albumName = record.albumName?.trim()?.takeIf(String::isNotEmpty)

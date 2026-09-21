@@ -17,6 +17,8 @@ android {
         versionName = "0.1.0"
     }
 
+    testOptions { unitTests.isIncludeAndroidResources = true }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -32,12 +34,19 @@ android {
 }
 
 dependencies {
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel-compose:1.3.0")
+    testImplementation(libs.junit)
+    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation(project(":core:model"))
     implementation(project(":core:database"))
     implementation(project(":core:designsystem"))
     implementation(project(":domain"))
     implementation(project(":data:history"))
     implementation(project(":data:import"))
+    implementation(project(":data:privacy"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

@@ -37,7 +37,7 @@ object AppModule {
         context,
         SpotifyStatsDatabase::class.java,
         SpotifyStatsDatabase.DATABASE_NAME,
-    ).build()
+    ).addMigrations(com.davidegea.spotifystats.database.MIGRATION_1_2).build()
 
     @Provides
     fun provideListeningHistoryDao(
@@ -66,6 +66,24 @@ object AppModule {
         database = database,
         importDao = importDao,
     )
+
+    @Provides
+    @Singleton
+    fun provideExplorationRepository(database: SpotifyStatsDatabase, history: ListeningHistoryRepository): com.davidegea.spotifystats.domain.repository.ExplorationRepository =
+        com.davidegea.spotifystats.data.history.RoomExplorationRepository(database, history)
+
+    @Provides
+    @Singleton
+    fun provideDataControlRepository(@ApplicationContext context: Context, database: SpotifyStatsDatabase): com.davidegea.spotifystats.domain.repository.DataControlRepository =
+        com.davidegea.spotifystats.data.privacy.LocalDataControlRepository(context, database)
+
+    @Provides
+    fun provideManageLocalDataUseCase(repository: com.davidegea.spotifystats.domain.repository.DataControlRepository) =
+        com.davidegea.spotifystats.domain.usecase.ManageLocalDataUseCase(repository)
+
+    @Provides
+    fun provideExploreListeningUseCase(repository: com.davidegea.spotifystats.domain.repository.ExplorationRepository) =
+        com.davidegea.spotifystats.domain.usecase.ExploreListeningUseCase(repository)
 
     @Provides
     fun provideObserveOverviewStatsUseCase(
