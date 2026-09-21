@@ -136,4 +136,15 @@
     <string name="import_status_failed">fallido</string>
     <string name="import_status_cancelled">cancelado</string>
 
+
+    <string name="wrapped_card_story">TU HISTORIA MUSICAL</string>
+    <string name="wrapped_card_recorded_events">eventos de escucha registrados</string>
+    <string name="wrapped_card_songs_artists">%1$d canciones · %2$d artistas</string>
+    <string name="wrapped_card_top_song">01 / CANCIÓN PRINCIPAL</string>
+    <string name="wrapped_card_top_artist">02 / ARTISTA PRINCIPAL</string>
+    <string name="wrapped_card_top_album">03 / ÁLBUM PRINCIPAL</string>
+    <string name="wrapped_card_discoveries">%1$d artistas registrados por primera vez en este periodo</string>
+    <string name="wrapped_card_brand">SPOTIFY STATS · CREADO EN MI DISPOSITIVO</string>
+    <string name="wrapped_card_disclaimer">Basado en historial importado · app no oficial</string>
+
 </resources>
