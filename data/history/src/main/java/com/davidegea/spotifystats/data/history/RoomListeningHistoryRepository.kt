@@ -178,8 +178,6 @@ class RoomListeningHistoryRepository(
                     totalPlays = it.totalPlays,
                     totalListeningMs = it.totalListeningMs,
                     uniqueTracks = it.uniqueTracks,
-                    activeDays = it.activeDays,
-                    meaningfulPlays = it.meaningfulPlays,
                     firstPlayedAtEpochMs = it.firstPlayedAtEpochMs,
                     lastPlayedAtEpochMs = it.lastPlayedAtEpochMs,
                 )
@@ -239,6 +237,8 @@ class RoomListeningHistoryRepository(
                     totalPlays = it.totalPlays,
                     totalListeningMs = it.totalListeningMs,
                     uniqueTracks = it.uniqueTracks,
+                    activeDays = it.activeDays,
+                    meaningfulPlays = it.meaningfulPlays,
                     firstPlayedAtEpochMs = it.firstPlayedAtEpochMs,
                     lastPlayedAtEpochMs = it.lastPlayedAtEpochMs,
                 )
