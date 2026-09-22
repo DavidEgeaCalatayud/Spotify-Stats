@@ -40,9 +40,14 @@ fun WrappedRoute(onBack: () -> Unit, viewModel: WrappedViewModel = hiltViewModel
     var year by rememberSaveable { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
     var month by rememberSaveable { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
     var mode by rememberSaveable { mutableIntStateOf(0) }
+    var customStart by rememberSaveable { mutableStateOf<Long?>(null) }
+    var customEnd by rememberSaveable { mutableStateOf<Long?>(null) }
     var dates by rememberSaveable { mutableStateOf(false) }
     var showStories by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(year, month, mode) {
+    LaunchedEffect(year, month, mode, customStart, customEnd) {
+        if (mode == 2 && customStart != null && customEnd != null) {
+            viewModel.selectCustom(com.davidegea.spotifystats.domain.model.TimeRange(requireNotNull(customStart), requireNotNull(customEnd)))
+        }
         if (mode == 0) viewModel.selectCustom(DateRanges.dates("$year-01-01", "$year-12-31"))
         if (mode == 1) {
             val last = Calendar.getInstance().apply { clear(); set(year, month, 1) }.getActualMaximum(Calendar.DAY_OF_MONTH)
@@ -84,7 +89,7 @@ fun WrappedRoute(onBack: () -> Unit, viewModel: WrappedViewModel = hiltViewModel
             }
         }
     }
-    if (dates) DateRangeDialog(onDismiss = { dates = false }, onSelected = { mode = 2; viewModel.selectCustom(it); dates = false }, initialRange = state.customRange)
+    if (dates) DateRangeDialog(onDismiss = { dates = false }, onSelected = { customStart = it.fromInclusive; customEnd = it.toInclusive; mode = 2; viewModel.selectCustom(it); dates = false }, initialRange = state.customRange)
 }
 
 @Composable

@@ -21,6 +21,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Keep number/date formatting consistent with the app language on every Android version.
+        android.os.LocaleList.setDefault(resources.configuration.locales)
         enableEdgeToEdge()
         setContent {
             val preferences = remember { AppPreferences.store(this) }

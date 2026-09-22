@@ -1,14 +1,20 @@
 package com.davidegea.spotifystats
 
 import android.app.Application
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import com.davidegea.spotifystats.ui.calendar.MonthGrid
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.activity.ComponentActivity
+import android.graphics.Canvas
 import com.davidegea.spotifystats.designsystem.SpotifyStatsTheme
 import com.davidegea.spotifystats.domain.analytics.DateRanges
 import com.davidegea.spotifystats.domain.model.*
@@ -32,7 +38,7 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [28], application = Application::class, qualifiers = "w411dp-h891dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class PolishedUiTest {
-    @get:Rule val compose = createComposeRule()
+    @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
     private val range = DateRanges.dates("2026-09-01", "2026-09-22")
     private val tracks = listOf(
         TrackRanking(1, "Blinding Lights", "The Weeknd", 84, 16_560_000),
@@ -58,7 +64,7 @@ class PolishedUiTest {
     @Test fun libraryTabsKeepRankingNavigationAndSearch() {
         var clicked = 0L
         compose.setContent { SpotifyStatsTheme { Surface {
-            LibraryScreen(LibraryUiState(tracks = tracks, artists = artists, albums = albums), {}, {}, {}, {}, {}, { clicked = it }, { clicked = it }, { clicked = it })
+            LibraryScreen(LibraryUiState(loading = false, tracks = tracks, artists = artists, albums = albums), {}, {}, {}, {}, {}, { clicked = it }, { clicked = it }, { clicked = it })
         } } }
         compose.onNodeWithText("Blinding Lights").assertExists()
         snapshot("library-light")
@@ -101,10 +107,52 @@ class PolishedUiTest {
         compose.onNodeWithText("Share overview card").assertExists()
     }
 
+
+    @Test fun monthGridOpensTheRightLeapDay() {
+        var selected = ""
+        compose.setContent { SpotifyStatsTheme { Surface { Column {
+            MonthGrid(2024, 1, mapOf("2024-02-29" to DailyListening("2024-02-29", 43, 8_340_000))) { selected = it }
+        } } } }
+        snapshot("calendar-leap-month")
+        compose.onNodeWithContentDescription("2024-02-29: 43 events, 2h 19m").performClick()
+        assertEquals("2024-02-29", selected)
+    }
+
+    @Test
+    @Config(qualifiers = "w320dp-h640dp")
+    fun wrappedSharingRemainsReachableWithLargeTextOnSmallPhone() {
+        compose.setContent {
+            val config = Configuration(LocalConfiguration.current).apply { fontScale = 1.8f }
+            CompositionLocalProvider(LocalConfiguration provides config, LocalDensity provides Density(LocalDensity.current.density, 1.8f)) {
+                SpotifyStatsTheme { WrappedStories(Recap(range, OverviewStats(2847, 329_040_000, 312, 87), tracks, artists, albums, 28), {}) }
+            }
+        }
+        repeat(3) { compose.onNodeWithText("Next").performClick() }
+        compose.onNodeWithText("Share story sequence").performScrollTo().assertIsDisplayed()
+        snapshot("wrapped-large-text")
+    }
+
+    @Test
+    @Config(qualifiers = "w1000dp-h840dp")
+    fun homeRendersAnExpandedLayout() {
+        compose.setContent { SpotifyStatsTheme { Surface {
+            HomeScreen(HomeUiState(loading = false, totalPlays = 2847, totalListeningMs = 329_040_000, uniqueTracks = 312, uniqueArtists = 87,
+                customRange = range, range = range, daily = days, topTrack = tracks[0], topArtist = artists[0], topAlbum = albums[0]), {}, {}, {}, {}, {}, {})
+        } } }
+        compose.onNodeWithText("Top song").assertIsDisplayed()
+        snapshot("home-tablet")
+    }
+
     private fun snapshot(name: String) {
         compose.waitForIdle()
-        val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
-        File("build/reports/ui-polish").mkdirs()
-        File("build/reports/ui-polish/$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        // PixelCopy is not driven by Robolectric. Render the actual laid-out window with its native Canvas.
+        compose.runOnIdle {
+            val view = compose.activity.window.decorView
+            val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+            view.draw(Canvas(bitmap))
+            File("build/reports/ui-polish").mkdirs()
+            File("build/reports/ui-polish/$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+        }
     }
 }

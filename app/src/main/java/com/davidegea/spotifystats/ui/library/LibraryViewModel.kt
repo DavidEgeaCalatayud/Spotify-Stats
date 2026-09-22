@@ -21,6 +21,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
@@ -33,6 +34,7 @@ import kotlinx.coroutines.launch
 data class LibraryUiState(
     val period: AnalyticsPeriod = AnalyticsPeriod.LAST_30_DAYS,
     val customRange: TimeRange? = null,
+    val loading: Boolean = true,
     val query: String = "",
     val results: List<SearchResult> = emptyList(),
     val limit: Int = 250,
@@ -85,12 +87,15 @@ class LibraryViewModel @Inject constructor(
                 period = selected.period,
                 customRange = selected.range,
                 query = selected.query,
+                loading = false,
                 results = results,
                 limit = selected.limit,
                 tracks = rankings.tracks,
                 artists = rankings.artists,
                 albums = rankings.albums,
             )
+        }.onStart {
+            emit(LibraryUiState(period = selected.period, customRange = selected.range, query = selected.query, limit = selected.limit))
         }.catch {
             emit(
                 LibraryUiState(
@@ -98,6 +103,7 @@ class LibraryViewModel @Inject constructor(
                     customRange = selected.range,
                     query = selected.query,
                     limit = selected.limit,
+                    loading = false,
                     error = "Unable to load this selection.",
                 ),
             )

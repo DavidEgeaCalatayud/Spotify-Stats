@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -44,13 +45,16 @@ fun ContentContainer(modifier: Modifier = Modifier, content: @Composable () -> U
 fun StatsPage(
     title: String? = null,
     onBack: (() -> Unit)? = null,
+    resetScrollKey: Any? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val scrollState = rememberScrollState()
+    LaunchedEffect(resetScrollKey) { if (resetScrollKey != null) scrollState.scrollTo(0) }
     ContentContainer {
         Column(Modifier.fillMaxSize()) {
             if (title != null && onBack != null) StatsTopBar(title, onBack)
             Column(
-                Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(20.dp),
+                Modifier.weight(1f).verticalScroll(scrollState).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(StatsSpacing.xl),
                 content = content,
             )

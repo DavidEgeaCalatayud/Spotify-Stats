@@ -317,4 +317,11 @@
     <string name="onboarding_ready">Your history. A whole new perspective.</string>
     <string name="onboarding_welcome_copy">Rediscover your favourites, your habits and the songs that sound like you.</string>
     <string name="onboarding_privacy_copy">No account. No automatic uploads. Your listening story stays on this device and works offline.</string>
+    <string name="story_repeat">On repeat</string>
+    <string name="story_rediscovered">Rediscovered</string>
+    <string name="story_discovery">New to your history</string>
+    <string name="story_break">Taking a break</string>
+    <string name="chart_minimum">Quietest day: %1$s · %2$s</string>
+    <string name="chart_comparison_legend">Bars: selected period · Lines: preceding interval</string>
+    <string name="chart_previous_value">Preceding interval · %1$s · %2$s</string>
 </resources>

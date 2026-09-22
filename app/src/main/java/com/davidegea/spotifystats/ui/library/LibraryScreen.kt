@@ -93,7 +93,8 @@ internal fun LibraryScreen(
                             Tab(selected = section == candidate, onClick = { section = candidate }, text = { Text(sectionLabel(candidate)) })
                         }
                     }
-                    AnimatedContent(section, Modifier.weight(1f), transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) }, label = "library section") { selected ->
+                    if (state.loading) LoadingStateCard(stringResource(R.string.state_loading))
+                    else AnimatedContent(section, Modifier.weight(1f), transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) }, label = "library section") { selected ->
                         val rankings = when (selected) {
                             LibrarySection.Songs -> state.tracks.map { RankingItem(it.id, it.name, it.artistName, it.plays, it.listeningMs) }
                             LibrarySection.Artists -> state.artists.map { RankingItem(it.id, it.name, null, it.plays, it.listeningMs) }
@@ -143,7 +144,8 @@ internal fun LibraryScreen(
 private fun SearchResults(state: LibraryUiState, query: String, onClick: (SearchResult) -> Unit) {
     LazyColumn(Modifier.fillMaxWidth(), contentPadding = PaddingValues(vertical = 12.dp)) {
         item { Text(stringResource(R.string.library_search_limit), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(12.dp)) }
-        if (state.query != query) item { LoadingStateCard(stringResource(R.string.state_loading)) }
+        if (state.error != null) item { ErrorStateCard(stringResource(R.string.library_read_error)) }
+        else if (state.loading || state.query != query) item { LoadingStateCard(stringResource(R.string.state_loading)) }
         else {
             if (query.isNotBlank() && state.results.isEmpty()) item { Text(stringResource(R.string.library_no_matches), Modifier.padding(16.dp)) }
             items(state.results, key = { "${it.kind}:${it.id}" }) { result ->

@@ -53,7 +53,7 @@ class HomeViewModel @Inject constructor(
                     topAlbum = dashboard.topAlbum,
                     recentActivity = dashboard.recentActivity,
                 )
-            }.onStart { emit(HomeUiState(period = selected, customRange = range)) }
+            }
                 .catch { emit(HomeUiState(period = selected, customRange = range, loading = false, error = "Unable to read listening history.")) }
         }
         .stateIn(

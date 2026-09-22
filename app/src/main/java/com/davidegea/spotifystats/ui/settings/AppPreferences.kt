@@ -11,7 +11,8 @@ object AppPreferences {
     fun store(context: Context) = context.getSharedPreferences("appearance", Context.MODE_PRIVATE)
     fun theme(context: Context): String = store(context).getString("theme", "system") ?: "system"
     fun language(context: Context): String = if (Build.VERSION.SDK_INT >= 33) {
-        context.getSystemService(LocaleManager::class.java).applicationLocales.toLanguageTags().ifBlank { "system" }
+        val locales = context.getSystemService(LocaleManager::class.java).applicationLocales
+        if (locales.isEmpty) "system" else locales[0].language
     } else store(context).getString("language", "system") ?: "system"
 
     fun setTheme(context: Context, value: String) { store(context).edit().putString("theme", value).apply() }

@@ -317,4 +317,11 @@
     <string name="onboarding_ready">Tu historial. Una nueva forma de verlo.</string>
     <string name="onboarding_welcome_copy">Redescubre tus favoritos, tus hábitos y las canciones que hablan de ti.</string>
     <string name="onboarding_privacy_copy">Sin cuenta ni subidas automáticas. Tu historia musical se queda en este dispositivo y funciona sin conexión.</string>
+    <string name="story_repeat">En bucle</string>
+    <string name="story_rediscovered">Redescubrimiento</string>
+    <string name="story_discovery">Nuevo en tu historial</string>
+    <string name="story_break">Tomando un descanso</string>
+    <string name="chart_minimum">Día más tranquilo: %1$s · %2$s</string>
+    <string name="chart_comparison_legend">Barras: periodo seleccionado · Líneas: intervalo anterior</string>
+    <string name="chart_previous_value">Intervalo anterior · %1$s · %2$s</string>
 </resources>

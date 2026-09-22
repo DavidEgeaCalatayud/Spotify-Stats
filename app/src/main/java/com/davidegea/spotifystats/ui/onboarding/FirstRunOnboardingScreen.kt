@@ -21,7 +21,7 @@ import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
 fun FirstRunOnboardingScreen(onImportStarted: () -> Unit, onImportFinished: () -> Unit, onContinueWithoutImport: () -> Unit) {
     var step by rememberSaveable { mutableIntStateOf(0) }
     BackHandler(step > 0) { step-- }
-    StatsPage {
+    StatsPage(resetScrollKey = step) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelLarge)
         LinearProgressIndicator(progress = { (step + 1) / 3f }, modifier = Modifier.fillMaxWidth())

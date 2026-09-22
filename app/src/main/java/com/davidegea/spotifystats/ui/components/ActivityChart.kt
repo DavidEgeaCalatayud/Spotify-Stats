@@ -56,6 +56,12 @@ fun ActivityChart(
                     Text(stringResource(R.string.chart_compare), Modifier.padding(start = 8.dp), style = MaterialTheme.typography.bodySmall)
                 }
             }
+            if (compare) {
+                Text(stringResource(R.string.chart_comparison_legend), style = MaterialTheme.typography.bodySmall)
+                previous.getOrNull(previous.size - visible.size + selected)?.let { prior ->
+                    Text(stringResource(R.string.chart_previous_value, prior.date, listeningTime(prior.listeningMs)), style = MaterialTheme.typography.bodySmall)
+                }
+            }
             Text(selectionLabel, style = MaterialTheme.typography.labelLarge, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             Canvas(Modifier.fillMaxWidth().height(148.dp).semantics { contentDescription = chartLabel }
                 .pointerInput(visible) { detectTapGestures { offset -> selected = (offset.x / size.width * visible.size).toInt().coerceIn(visible.indices) } }) {
@@ -77,7 +83,7 @@ fun ActivityChart(
                 }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                listOf(0, visible.lastIndex / 2, visible.lastIndex).distinct().forEach { index ->
+                listOf(0, 7, 14, 21, visible.lastIndex).filter { it <= visible.lastIndex }.distinct().sorted().forEach { index ->
                     Text(shortChartDate(visible[index].date), style = MaterialTheme.typography.labelSmall)
                 }
             }
@@ -86,7 +92,9 @@ fun ActivityChart(
                 TextButton(onClick = { selected = (selected + 1).coerceAtMost(visible.lastIndex) }, enabled = selected < visible.lastIndex) { Text(stringResource(R.string.chart_next_day)) }
             }
             val peak = visible.maxBy { it.listeningMs }
+            val quietest = visible.minBy { it.listeningMs }
             Text(stringResource(R.string.chart_peak, shortChartDate(peak.date), listeningTime(peak.listeningMs)), style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.chart_minimum, shortChartDate(quietest.date), listeningTime(quietest.listeningMs)), style = MaterialTheme.typography.bodySmall)
         }
     }
 }
