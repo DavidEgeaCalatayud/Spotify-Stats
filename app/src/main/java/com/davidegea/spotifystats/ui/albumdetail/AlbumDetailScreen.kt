@@ -86,7 +86,7 @@ private fun AlbumDetailScreen(
                 modifier = Modifier.weight(1f),
             )
             StatPill(
-                label = stringResource(R.string.detail_active_days, detail.activeDays),
+                label = stringResource(R.string.detail_active_days_label),
                 value = NumberFormat.getIntegerInstance().format(detail.activeDays),
                 modifier = Modifier.weight(1f),
             )
