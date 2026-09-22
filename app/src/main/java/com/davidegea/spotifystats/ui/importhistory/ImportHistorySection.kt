@@ -6,24 +6,28 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+private const val SPOTIFY_PRIVACY_URL = "https://www.spotify.com/account/privacy/"
 
 @Composable
 fun ImportHistorySection(
     viewModel: ImportHistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments(),
     ) { uris ->
@@ -44,7 +48,20 @@ fun ImportHistorySection(
                 style = MaterialTheme.typography.bodyMedium,
             )
 
-            Text("Request Extended streaming history from the Privacy settings of your Spotify account, then import the downloaded ZIP or audio JSON files. Regular account exports and podcasts are not supported.", style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = "Don't have your Spotify data yet?",
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Text(
+                text = "Request Extended Streaming History from Spotify, then come back here when your download is ready. Choose the extended history package rather than the regular account-data export.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            TextButton(
+                onClick = { uriHandler.openUri(SPOTIFY_PRIVACY_URL) },
+                enabled = state !is ImportHistoryUiState.Importing,
+            ) {
+                Text("Request data from Spotify")
+            }
 
             when (val current = state) {
                 ImportHistoryUiState.Idle -> Unit
@@ -90,7 +107,11 @@ fun ImportHistorySection(
                 }
             }
 
-            if (state is ImportHistoryUiState.Importing) TextButton(onClick = viewModel::cancelImport) { Text("Cancel import") }
+            if (state is ImportHistoryUiState.Importing) {
+                TextButton(onClick = viewModel::cancelImport) {
+                    Text("Cancel import")
+                }
+            }
             Button(
                 onClick = {
                     launcher.launch(
