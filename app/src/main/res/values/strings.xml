@@ -324,4 +324,6 @@
     <string name="chart_minimum">Quietest day: %1$s · %2$s</string>
     <string name="chart_comparison_legend">Bars: selected period · Lines: preceding interval</string>
     <string name="chart_previous_value">Preceding interval · %1$s · %2$s</string>
+    <string name="detail_active_days_label">Active days</string>
+    <string name="detail_all_time_rank_label">All-time rank</string>
 </resources>
