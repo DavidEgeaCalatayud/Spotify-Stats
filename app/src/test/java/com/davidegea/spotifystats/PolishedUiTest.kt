@@ -28,6 +28,8 @@ import com.davidegea.spotifystats.ui.insights.ListeningHeatmap
 import com.davidegea.spotifystats.ui.library.LibraryScreen
 import com.davidegea.spotifystats.ui.library.LibraryUiState
 import com.davidegea.spotifystats.ui.wrapped.WrappedStories
+import com.davidegea.spotifystats.ui.you.DataControlState
+import com.davidegea.spotifystats.ui.you.YouScreen
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -118,6 +120,31 @@ class PolishedUiTest {
         compose.onNodeWithText("The Weeknd").assertExists()
         compose.onNodeWithText("1,294").assertExists()
         snapshot("entity-detail-dark")
+    }
+
+    @Test fun youGroupsSettingsAndUsesAThemeBottomSheet() {
+        var selectedTheme = ""
+        compose.setContent { SpotifyStatsTheme { Surface {
+            YouScreen(
+                state = DataControlState(),
+                theme = "system",
+                language = "system",
+                onWrapped = {},
+                onCalendar = {},
+                onImport = {},
+                onExport = {},
+                onRestore = {},
+                onDelete = {},
+                onThemeSelected = { selectedTheme = it },
+                onLanguageSelected = {},
+            )
+        } } }
+        compose.onNodeWithText("Your music").assertExists()
+        compose.onNodeWithText("Theme").performScrollTo().performClick()
+        compose.onNodeWithText("Dark").assertIsDisplayed()
+        snapshot("you-theme-sheet")
+        compose.onNodeWithText("Dark").performClick()
+        assertEquals("dark", selectedTheme)
     }
 
     @Test fun wrappedHasSwipeAndButtonNavigationAndShareActions() {
