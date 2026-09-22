@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import com.davidegea.spotifystats.ui.calendar.MonthGrid
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.*
