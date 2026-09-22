@@ -169,10 +169,12 @@ fun EntityHero(
     secondaryLabel: String,
     roundArtwork: Boolean,
 ) {
-    val largeText = LocalConfiguration.current.fontScale > 1.3f
+    val configuration = LocalConfiguration.current
+    val largeText = configuration.fontScale > 1.3f
+    val locale = configuration.locales[0]
     HeroSurface {
         Text(
-            eyebrow.uppercase(java.util.Locale.getDefault()),
+            eyebrow.uppercase(locale),
             style = MaterialTheme.typography.labelLarge,
             color = StatsPalette.mint,
         )
