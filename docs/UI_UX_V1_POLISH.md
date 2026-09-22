@@ -8,7 +8,7 @@ The presentation keeps analytics, Room, import processing, backup validation and
 - Material shapes: 12/18/26 dp. Both light and dark surfaces are specified.
 - `LocalArtwork`: stable decorative artwork from names; not official Spotify covers. No downloads or cache.
 - `ContentContainer`: centred, capped at 960 dp. Home uses two columns from 720 dp of content width; navigation switches to a rail from 840 dp. Larger font scales favour stacked content.
-- Native back headers, 180–300 ms Compose transitions, optional platform haptics, skeletons and localised empty/error messages.
+- Native back headers, a branded launch state, 180–300 ms Compose transitions, optional platform haptics, skeletons and localised empty/error messages.
 
 ## Experience
 
@@ -17,7 +17,8 @@ The presentation keeps analytics, Room, import processing, backup validation and
 | Home | Plays and listening time form the hero. Tracks/artists are secondary. Favourites have artwork. Import opens its own screen. |
 | Activity | Rounded interactive bars include zero-listening days. At most 30 calendar days, date ticks, peak/quietest dates, accessible previous/next selection, optional preceding-interval comparison. Comparisons retain the domain's equal-duration interval definition. |
 | Library | SearchBar, section tabs, podium, artwork rankings and paginated history. Query and tab UI survive recreation. |
-| Insights | Listening rhythm, continuous-colour weekday/hour heatmap, day/hour controls, playback proportions and illustrated discovery/repeat stories. Definitions and thresholds are expandable. |
+| Entity details | Shared music-profile hero, deterministic artwork, visual year history and illustrated track drill-downs keep song/artist/album pages consistent with the dashboard. |
+| Insights | Listening rhythm, continuous-colour weekday/hour heatmap, compact opt-in exact-time controls, playback proportions and illustrated discovery/repeat stories. Definitions and thresholds are expandable. |
 | Calendar | Year navigation and month tabs, real day cells, day bottom sheet and full-day history route. Loading and failed day requests are separate states. |
 | Wrapped | Year/month/custom entry and four paged stories. Swipe, previous/next, close/system back, local story and overview sharing. Long content scrolls, including at large font sizes. |
 | You | Music/data/privacy/connections/app groups, isolated delete action, unchanged restore/delete confirmations. Persisted light/dark/system theme and EN/ES/system language. |
