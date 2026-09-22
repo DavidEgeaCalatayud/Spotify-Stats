@@ -15,6 +15,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -34,12 +38,15 @@ fun ImportHistorySection(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(state) {
         when (state) {
-            is ImportHistoryUiState.Complete,
-            is ImportHistoryUiState.Failed,
-            -> onImportFinished()
+            is ImportHistoryUiState.Complete -> {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onImportFinished()
+            }
+            is ImportHistoryUiState.Failed -> onImportFinished()
             else -> Unit
         }
     }
@@ -53,7 +60,7 @@ fun ImportHistorySection(
         }
     }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier.fillMaxWidth().animateContentSize(tween(260))) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),

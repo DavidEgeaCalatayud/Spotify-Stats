@@ -6,6 +6,8 @@ import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
 import com.davidegea.spotifystats.domain.usecase.ObserveHomeDashboardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.flowOf
+import com.davidegea.spotifystats.domain.analytics.DateRanges
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
@@ -29,11 +31,18 @@ class HomeViewModel @Inject constructor(
     private val custom = MutableStateFlow<TimeRange?>(null)
     val uiState = combine(period, custom) { selected, range -> selected to range }
         .flatMapLatest { (selected, range) ->
-            combine(observeHomeDashboard(selected, range), explore.daily(range ?: AnalyticsTimeRangeResolver().resolve(selected))) { dashboard, daily ->
+            val resolved = range ?: AnalyticsTimeRangeResolver().resolve(selected)
+            val previousRange = DateRanges.previous(resolved)
+            val previousFlow = previousRange?.let { explore.daily(it) } ?: flowOf(null)
+            combine(observeHomeDashboard(selected, range), explore.daily(resolved), previousFlow) { dashboard, daily, previous ->
                 HomeUiState(
                     period = selected,
                     customRange = range,
                     daily = daily,
+                    range = resolved,
+                    previousRange = previousRange,
+                    previousDaily = previous,
+                    previousListeningMs = previous?.sumOf { it.listeningMs },
                     loading = false,
                     totalPlays = dashboard.overview.totalPlays,
                     totalListeningMs = dashboard.overview.totalListeningMs,

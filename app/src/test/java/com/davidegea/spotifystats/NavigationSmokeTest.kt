@@ -16,9 +16,13 @@ class NavigationSmokeTest {
 
     @Test fun startsWithOnboardingAndCanExploreAllTopLevelScreensAndRecaps() {
         compose.waitUntil(10_000) {
-            compose.onAllNodesWithText("Choose history files").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("Your complete Spotify history, privately").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Your complete Spotify history, privately").assertExists()
+        compose.onNodeWithText("Next").performScrollTo().performClick()
+        compose.onNodeWithText("Your data, on your device").assertExists()
+        compose.onNodeWithText("Next").performScrollTo().performClick()
+        compose.onNodeWithText("Choose history files").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Explore without importing").performScrollTo().performClick()
         compose.waitForIdle()
         compose.waitUntil(10_000) {
@@ -31,10 +35,13 @@ class NavigationSmokeTest {
         compose.onNodeWithText("You").performClick()
         compose.onNodeWithText("Generate your Wrapped").performClick()
         compose.onNodeWithText("Your Wrapped").assertExists()
-        compose.onNodeWithText("Back").performClick()
+        compose.onNodeWithContentDescription("Back").performClick()
         compose.onNodeWithText("Listening calendar").performClick()
         compose.onNodeWithText("Listening calendar").assertExists()
-        compose.onNodeWithText("Back").performClick()
+        compose.onNodeWithContentDescription("Back").performClick()
         compose.onNodeWithText("Your data, on your device").assertExists()
+        compose.onNodeWithText("Theme").performScrollTo().performClick()
+        compose.onNodeWithText("Dark").performClick()
+        compose.onNodeWithText("Dark").assertExists()
     }
 }

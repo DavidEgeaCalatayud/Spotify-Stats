@@ -12,6 +12,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.davidegea.spotifystats.ui.components.StatsPage
+import com.davidegea.spotifystats.ui.components.LocalArtwork
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -55,16 +57,8 @@ private fun ArtistDetailScreen(
 ) {
     val unknown = stringResource(R.string.detail_unknown)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        TextButton(onClick = onBack) {
-            Text(stringResource(R.string.action_back))
-        }
+    StatsPage(stringResource(R.string.library_artists), onBack) {
+        LocalArtwork(detail.name, size = 128.dp, round = true)
 
         Text(detail.name, style = MaterialTheme.typography.headlineMedium)
 
@@ -176,15 +170,7 @@ private fun ArtistDetailScreen(
 
 @Composable
 private fun DetailMessage(message: String, onBack: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        TextButton(onClick = onBack) {
-            Text(stringResource(R.string.action_back))
-        }
+    StatsPage(stringResource(R.string.library_artists), onBack) {
         Text(message, style = MaterialTheme.typography.titleLarge)
     }
 }

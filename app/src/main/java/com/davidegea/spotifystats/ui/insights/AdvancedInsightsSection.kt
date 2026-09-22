@@ -8,7 +8,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import com.davidegea.spotifystats.ui.components.LocalArtwork
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -25,15 +34,17 @@ fun AdvancedInsightsSection(
 ) {
     val locale = LocalConfiguration.current.locales[0]
 
+    var showMethod by rememberSaveable { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth()) {
         Column(
             Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                stringResource(R.string.advanced_listen_definition_title),
-                style = MaterialTheme.typography.titleLarge,
-            )
+            TextButton(onClick = { showMethod = !showMethod }) {
+                Text(stringResource(R.string.advanced_listen_definition_title))
+            }
+            AnimatedVisibility(showMethod) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 stringResource(
                     R.string.advanced_listen_definition,
@@ -59,6 +70,8 @@ fun AdvancedInsightsSection(
                 }
             } else {
                 Text(stringResource(R.string.advanced_completion_unavailable))
+            }
+            }
             }
         }
     }
@@ -188,9 +201,12 @@ private fun Highlight(
             .fillMaxWidth()
             .clickable(onClick = onClick),
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(detail)
+        Row(Modifier.padding(20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            LocalArtwork(title, size = 64.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(title, style = MaterialTheme.typography.titleLarge)
+                Text(detail, style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }

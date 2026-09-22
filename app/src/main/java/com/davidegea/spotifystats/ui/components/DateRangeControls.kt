@@ -7,7 +7,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import java.util.TimeZone
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -37,16 +46,17 @@ fun DateRangeControls(
     onCustom: (TimeRange) -> Unit,
 ) {
     var showDialog by rememberSaveable { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
     Row(
         Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        AnalyticsPeriod.entries.forEach { candidate ->
+        listOf(AnalyticsPeriod.TODAY, AnalyticsPeriod.LAST_7_DAYS, AnalyticsPeriod.LAST_30_DAYS, AnalyticsPeriod.LAST_6_MONTHS, AnalyticsPeriod.THIS_YEAR, AnalyticsPeriod.ALL_TIME).forEach { candidate ->
             FilterChip(
                 selected = custom == null && period == candidate,
-                onClick = { onPeriod(candidate) },
+                onClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); onPeriod(candidate) },
                 label = { Text(stringResource(periodLabelRes(candidate))) },
             )
         }
@@ -64,6 +74,7 @@ fun DateRangeControls(
     }
     if (showDialog) {
         DateRangeDialog(
+            initialRange = custom,
             onDismiss = { showDialog = false },
             onSelected = {
                 onCustom(it)
@@ -73,56 +84,48 @@ fun DateRangeControls(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangeDialog(
     onDismiss: () -> Unit,
     onSelected: (TimeRange) -> Unit,
+    initialRange: TimeRange? = null,
 ) {
-    var from by rememberSaveable { mutableStateOf(isoDate(System.currentTimeMillis())) }
-    var to by rememberSaveable { mutableStateOf(from) }
-    var error by rememberSaveable { mutableStateOf<String?>(null) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.date_range_choose)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.date_range_body))
-                OutlinedTextField(
-                    value = from,
-                    onValueChange = { from = it },
-                    label = { Text(stringResource(R.string.date_range_from)) },
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = to,
-                    onValueChange = { to = it },
-                    label = { Text(stringResource(R.string.date_range_to)) },
-                    singleLine = true,
-                )
-                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    try {
-                        onSelected(DateRanges.dates(from, to))
-                    } catch (exception: IllegalArgumentException) {
-                        error = exception.message
-                    }
-                },
-            ) {
-                Text(stringResource(R.string.action_apply))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel))
-            }
-        },
+    val state = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = initialRange?.let { pickerMillis(it.fromInclusive) },
+        initialSelectedEndDateMillis = initialRange?.let { pickerMillis(it.toInclusive) },
+        yearRange = 1900..2200,
     )
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.widthIn(max = 600.dp).fillMaxWidth().fillMaxHeight(0.95f), shape = MaterialTheme.shapes.large) {
+            Column(Modifier.padding(12.dp)) {
+                Text(stringResource(R.string.date_range_choose), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(12.dp))
+                DateRangePicker(state, Modifier.weight(1f), title = null, showModeToggle = true)
+                Text(stringResource(R.string.date_range_body), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(12.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+                    TextButton(
+                        enabled = state.selectedStartDateMillis != null && state.selectedEndDateMillis != null,
+                        onClick = {
+                            val start = state.selectedStartDateMillis
+                            val end = state.selectedEndDateMillis
+                            if (start != null && end != null) onSelected(pickerRange(start, end))
+                        },
+                    ) { Text(stringResource(R.string.action_apply)) }
+                }
+            }
+        }
+    }
 }
+
+/** Material pickers use UTC dates; analytics uses inclusive local days (including DST). */
+internal fun pickerRange(start: Long, end: Long): TimeRange = DateRanges.dates(pickerIso(start), pickerIso(end))
+
+private fun pickerIso(value: Long): String = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).apply {
+    timeZone = TimeZone.getTimeZone("UTC")
+}.format(Date(value))
+
+private fun pickerMillis(value: Long): Long = DateRanges.parse(isoDate(value), TimeZone.getTimeZone("UTC"))
 
 @StringRes
 fun periodLabelRes(period: AnalyticsPeriod): Int = when (period) {
