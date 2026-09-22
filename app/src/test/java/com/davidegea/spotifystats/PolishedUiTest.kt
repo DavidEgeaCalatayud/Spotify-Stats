@@ -19,6 +19,8 @@ import com.davidegea.spotifystats.designsystem.SpotifyStatsTheme
 import com.davidegea.spotifystats.domain.analytics.DateRanges
 import com.davidegea.spotifystats.domain.model.*
 import com.davidegea.spotifystats.ui.components.ActivityChart
+import com.davidegea.spotifystats.ui.components.EntityHero
+import com.davidegea.spotifystats.ui.components.MetricBarRow
 import com.davidegea.spotifystats.ui.home.HomeScreen
 import com.davidegea.spotifystats.ui.home.HomeUiState
 import com.davidegea.spotifystats.ui.insights.ListeningHeatmap
@@ -93,6 +95,28 @@ class PolishedUiTest {
         compose.onNodeWithText("2026-09-02 · 0 plays · 0h 0m").assertExists()
         compose.onNodeWithText("Previous day").performClick()
         compose.onNodeWithText("2026-09-01 · 8 plays · 0h 10m").assertExists()
+    }
+
+    @Test fun entityDetailPrimitivesKeepTheMusicProfileHierarchy() {
+        compose.setContent { SpotifyStatsTheme(darkTheme = true) { Surface {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                EntityHero(
+                    eyebrow = "Artist",
+                    title = "The Weeknd",
+                    subtitle = "Most active year: 2026",
+                    primaryValue = "1,294",
+                    primaryLabel = "Plays",
+                    secondaryValue = "91h 24m",
+                    secondaryLabel = "Listening",
+                    roundArtwork = true,
+                )
+                MetricBarRow("2026", "#1 · 1,294 plays · 91h 24m", 1f)
+                MetricBarRow("2025", "#3 · 684 plays · 44h 8m", 0.53f)
+            }
+        } } }
+        compose.onNodeWithText("The Weeknd").assertExists()
+        compose.onNodeWithText("1,294").assertExists()
+        snapshot("entity-detail-dark")
     }
 
     @Test fun wrappedHasSwipeAndButtonNavigationAndShareActions() {
