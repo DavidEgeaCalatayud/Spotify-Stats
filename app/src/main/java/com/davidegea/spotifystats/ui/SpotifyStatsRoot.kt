@@ -155,7 +155,7 @@ private fun SpotifyStatsAppShell() {
                     composable("import") { StatsPage(stringResource(R.string.import_title), { navController.navigateUp() }) { ImportHistorySection() } }
                     composable("wrapped") { WrappedRoute(onBack = { navController.navigateUp() }) }
                     composable(TRACK_DETAIL_ROUTE) { TrackDetailRoute(onBack = { navController.navigateUp() }) }
-                    composable(ARTIST_DETAIL_ROUTE) { ArtistDetailRoute(onBack = { navController.navigateUp() }) }
+                    composable(ARTIST_DETAIL_ROUTE) { ArtistDetailRoute(onBack = { navController.navigateUp() }, onTrackClick = { navController.navigate("track/$it") }) }
                     composable(ALBUM_DETAIL_ROUTE) { AlbumDetailRoute(onBack = { navController.navigateUp() }, onTrackClick = { navController.navigate("track/$it") }) }
                 }
             }
