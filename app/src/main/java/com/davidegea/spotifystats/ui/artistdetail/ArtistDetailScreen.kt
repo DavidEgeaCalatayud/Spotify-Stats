@@ -88,7 +88,7 @@ private fun ArtistDetailScreen(
                 modifier = Modifier.weight(1f),
             )
             StatPill(
-                label = stringResource(R.string.detail_rank_history),
+                label = stringResource(R.string.detail_all_time_rank_label),
                 value = "#" + detail.allTimeRank,
                 modifier = Modifier.weight(1f),
             )
