@@ -73,6 +73,7 @@ jobs:
             **/build/test-results/
             app/build/reports/lint-results-debug.*
             app/build/reports/share-card.png
+            app/build/reports/ui-polish/
             app/build/reports/release-permissions.txt
             core/database/schemas/
 

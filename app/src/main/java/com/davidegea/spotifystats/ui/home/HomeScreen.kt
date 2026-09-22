@@ -1,328 +1,132 @@
 package com.davidegea.spotifystats.ui.home
 
-import com.davidegea.spotifystats.ui.components.DateRangeControls
-import com.davidegea.spotifystats.ui.components.ActivityChart
-import com.davidegea.spotifystats.domain.model.TimeRange
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import com.davidegea.spotifystats.R
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.davidegea.spotifystats.domain.model.AlbumRanking
-import com.davidegea.spotifystats.domain.model.AnalyticsPeriod
-import com.davidegea.spotifystats.domain.model.ArtistRanking
-import com.davidegea.spotifystats.domain.model.ListeningHistoryItem
-import com.davidegea.spotifystats.domain.model.TrackRanking
-import com.davidegea.spotifystats.ui.components.EmptyStateCard
-import com.davidegea.spotifystats.ui.components.ErrorStateCard
-import com.davidegea.spotifystats.ui.components.LoadingStateCard
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.davidegea.spotifystats.R
+import com.davidegea.spotifystats.designsystem.StatsPalette
+import com.davidegea.spotifystats.domain.model.*
+import com.davidegea.spotifystats.ui.components.*
 import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
 import java.text.DateFormat
+import java.text.NumberFormat
+import java.util.Calendar
 import java.util.Date
 
 @Composable
 fun HomeRoute(
-    onTrackClick: (Long) -> Unit,
-    onArtistClick: (Long) -> Unit,
-    onAlbumClick: (Long) -> Unit,
-    viewModel: HomeViewModel = hiltViewModel(),
+    onTrackClick: (Long) -> Unit, onArtistClick: (Long) -> Unit, onAlbumClick: (Long) -> Unit,
+    onImport: () -> Unit, viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(
-        state = state,
-        onPeriodSelected = viewModel::selectPeriod,
-        onCustom = viewModel::selectCustom,
-        onTrackClick = onTrackClick,
-        onArtistClick = onArtistClick,
-        onAlbumClick = onAlbumClick,
-    )
+    HomeScreen(state, viewModel::selectPeriod, viewModel::selectCustom, onTrackClick, onArtistClick, onAlbumClick, onImport)
 }
 
 @Composable
-private fun HomeScreen(
-    state: HomeUiState,
-    onPeriodSelected: (AnalyticsPeriod) -> Unit,
-    onCustom: (TimeRange) -> Unit,
-    onTrackClick: (Long) -> Unit,
-    onArtistClick: (Long) -> Unit,
-    onAlbumClick: (Long) -> Unit,
+internal fun HomeScreen(
+    state: HomeUiState, onPeriodSelected: (AnalyticsPeriod) -> Unit, onCustom: (TimeRange) -> Unit,
+    onTrackClick: (Long) -> Unit, onArtistClick: (Long) -> Unit, onAlbumClick: (Long) -> Unit, onImport: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.home_title),
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        Text(
-            text = stringResource(R.string.home_body),
-            style = MaterialTheme.typography.bodyLarge,
-        )
-
+    StatsPage {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+                    in 5..11 -> R.string.home_morning
+                    in 12..19 -> R.string.home_afternoon
+                    else -> R.string.home_evening
+                }
+                Text(stringResource(greeting), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.home_title), style = MaterialTheme.typography.headlineLarge)
+            }
+            LocalArtwork("Spotify Stats", size = 48.dp, round = true)
+        }
         DateRangeControls(state.period, state.customRange, onPeriodSelected, onCustom)
-        if (state.loading) {
-            LoadingStateCard(message = stringResource(R.string.home_loading))
-            return@Column
-        }
-        state.error?.let {
-            ErrorStateCard(message = it)
-            return@Column
-        }
-
+        if (state.loading) { LoadingStateCard(stringResource(R.string.home_loading)); return@StatsPage }
+        if (state.error != null) { ErrorStateCard(stringResource(R.string.home_read_error)); return@StatsPage }
         if (state.totalPlays == 0L) {
-            EmptyStateCard(
-                title = stringResource(R.string.home_empty_period_title),
-                body = stringResource(R.string.home_empty_period_body),
-            )
+            EmptyStateCard(stringResource(R.string.home_empty_period_title), stringResource(R.string.home_empty_period_body))
             ImportHistorySection()
-            return@Column
+            return@StatsPage
         }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            StatCard(
-                label = stringResource(R.string.metric_plays),
-                value = state.totalPlays.toString(),
-                modifier = Modifier.weight(1f),
-            )
-            StatCard(
-                label = stringResource(R.string.metric_listening),
-                value = formatListeningTime(state.totalListeningMs),
-                modifier = Modifier.weight(1f),
-            )
+        val largeText = LocalConfiguration.current.fontScale > 1.3f
+        BoxWithConstraints {
+            val overview: @Composable () -> Unit = {
+                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    HeroSurface {
+                        Text(stringResource(R.string.home_in_rotation), style = MaterialTheme.typography.labelLarge, color = StatsPalette.mint)
+                        Text(state.customRange?.let { rangeLabel(it) } ?: stringResource(periodLabelRes(state.period)), style = MaterialTheme.typography.titleMedium)
+                        AnimatedMetric(state.totalPlays)
+                        Text(stringResource(R.string.metric_plays), style = MaterialTheme.typography.titleMedium)
+                        HorizontalDivider(color = StatsPalette.mint.copy(alpha = 0.25f))
+                        Text(listeningTime(state.totalListeningMs), style = MaterialTheme.typography.headlineMedium, color = StatsPalette.mint)
+                        state.previousListeningMs?.let { previous ->
+                            if (previous > 0) {
+                                val percent = NumberFormat.getPercentInstance().apply { maximumFractionDigits = 1 }.format((state.totalListeningMs - previous).toDouble() / previous)
+                                Text(stringResource(R.string.home_period_change, percent), style = MaterialTheme.typography.bodyMedium)
+                            } else Text(stringResource(R.string.advanced_no_baseline), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatPill(stringResource(R.string.metric_tracks), NumberFormat.getIntegerInstance().format(state.uniqueTracks), Modifier.weight(1f))
+                        StatPill(stringResource(R.string.metric_artists), NumberFormat.getIntegerInstance().format(state.uniqueArtists), Modifier.weight(1f))
+                    }
+                    ActivityChart(state.daily, state.range, state.previousDaily, state.previousRange)
+                }
+            }
+            val favourites: @Composable () -> Unit = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    SectionHeading(stringResource(R.string.home_heavy_rotation))
+                    state.topTrack?.let { item -> TopEntityCard(stringResource(R.string.home_top_song), item.name, item.artistName, item.plays, item.listeningMs, true) { onTrackClick(item.id) } }
+                    state.topArtist?.let { item -> TopEntityCard(stringResource(R.string.home_top_artist), item.name, null, item.plays, item.listeningMs, false) { onArtistClick(item.id) } }
+                    state.topAlbum?.let { item -> TopEntityCard(stringResource(R.string.home_top_album), item.name, item.artistName, item.plays, item.listeningMs, false) { onAlbumClick(item.id) } }
+                }
+            }
+            if (maxWidth >= 720.dp && !largeText) Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                Box(Modifier.weight(1.15f)) { overview() }
+                Box(Modifier.weight(1f)) { favourites() }
+            } else Column(verticalArrangement = Arrangement.spacedBy(24.dp)) { overview(); favourites() }
         }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            StatCard(
-                label = stringResource(R.string.metric_tracks),
-                value = state.uniqueTracks.toString(),
-                modifier = Modifier.weight(1f),
-            )
-            StatCard(
-                label = stringResource(R.string.metric_artists),
-                value = state.uniqueArtists.toString(),
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-        ActivityChart(state.daily)
-
-        state.topTrack?.let { track ->
-            TrackTopCard(
-                item = track,
-                onClick = { onTrackClick(track.id) },
-            )
-        }
-
-        state.topArtist?.let { artist ->
-            ArtistTopCard(
-                item = artist,
-                onClick = { onArtistClick(artist.id) },
-            )
-        }
-
-        state.topAlbum?.let { album ->
-            AlbumTopCard(
-                item = album,
-                onClick = { onAlbumClick(album.id) },
-            )
-        }
-
         if (state.recentActivity.isNotEmpty()) {
-            Text(
-                text = stringResource(R.string.home_recent_activity),
-                style = MaterialTheme.typography.titleLarge,
-            )
+            SectionHeading(stringResource(R.string.home_recent_activity))
             state.recentActivity.forEach { item ->
-                RecentActivityRow(
-                    item = item,
-                    onClick = { onTrackClick(item.trackId) },
-                )
+                Row(Modifier.fillMaxWidth().clickable { onTrackClick(item.trackId) }.padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    LocalArtwork(item.trackName)
+                    Column(Modifier.weight(1f)) {
+                        Text(item.trackName, style = MaterialTheme.typography.titleMedium)
+                        item.artistName?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        Text(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(item.playedAtEpochMs)), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
             }
         }
-
-        Text(
-            text = stringResource(R.string.home_import_more),
-            style = MaterialTheme.typography.titleLarge,
-        )
-        ImportHistorySection()
+        TextButton(onClick = onImport) { Text(stringResource(R.string.home_import_more)) }
     }
 }
 
 @Composable
-private fun TrackTopCard(
-    item: TrackRanking,
-    onClick: () -> Unit,
-) {
-    TopEntityCard(
-        eyebrow = stringResource(R.string.home_top_song),
-        title = item.name,
-        subtitle = item.artistName,
-        footer = stringResource(R.string.plays_and_time, item.plays, formatListeningTime(item.listeningMs)),
-        onClick = onClick,
-    )
-}
-
-@Composable
-private fun ArtistTopCard(
-    item: ArtistRanking,
-    onClick: () -> Unit,
-) {
-    TopEntityCard(
-        eyebrow = stringResource(R.string.home_top_artist),
-        title = item.name,
-        subtitle = null,
-        footer = stringResource(R.string.plays_and_time, item.plays, formatListeningTime(item.listeningMs)),
-        onClick = onClick,
-    )
-}
-
-@Composable
-private fun AlbumTopCard(
-    item: AlbumRanking,
-    onClick: () -> Unit,
-) {
-    TopEntityCard(
-        eyebrow = stringResource(R.string.home_top_album),
-        title = item.name,
-        subtitle = item.artistName,
-        footer = stringResource(R.string.plays_and_time, item.plays, formatListeningTime(item.listeningMs)),
-        onClick = onClick,
-    )
-}
-
-@Composable
-private fun TopEntityCard(
-    eyebrow: String,
-    title: String,
-    subtitle: String?,
-    footer: String,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = eyebrow,
-                style = MaterialTheme.typography.labelLarge,
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            subtitle?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+private fun TopEntityCard(eyebrow: String, title: String, subtitle: String?, plays: Long, listeningMs: Long, featured: Boolean, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
+        containerColor = if (featured) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = if (featured) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurface,
+    )) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(eyebrow, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+                Text("01", style = MaterialTheme.typography.headlineMedium)
             }
-            Text(
-                text = footer,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            LocalArtwork(title, size = if (featured) 104.dp else 64.dp)
+            Text(title, style = if (featured) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleLarge)
+            subtitle?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+            Text(stringResource(R.string.plays_and_time, plays, listeningTime(listeningMs)), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
-
-@Composable
-private fun RecentActivityRow(
-    item: ListeningHistoryItem,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = item.trackName,
-                style = MaterialTheme.typography.titleMedium,
-            )
-            item.artistName?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-        Column {
-            Text(
-                text = formatEventDate(item.playedAtEpochMs),
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Text(
-                text = formatListeningTime(item.listeningMs),
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatCard(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
-    Card(modifier = modifier) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(text = value, style = MaterialTheme.typography.headlineSmall)
-            Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
-
-private fun formatListeningTime(milliseconds: Long): String {
-    val totalMinutes = milliseconds / 60_000
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-    return if (hours > 0) {
-        hours.toString() + "h " + minutes.toString() + "m"
-    } else {
-        minutes.toString() + "m"
-    }
-}
-
-private fun formatEventDate(epochMs: Long): String =
-    DateFormat.getDateTimeInstance(
-        DateFormat.SHORT,
-        DateFormat.SHORT,
-    ).format(Date(epochMs))

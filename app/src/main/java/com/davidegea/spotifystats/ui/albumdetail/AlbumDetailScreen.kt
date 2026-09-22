@@ -1,20 +1,17 @@
 package com.davidegea.spotifystats.ui.albumdetail
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -22,6 +19,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.domain.model.AlbumDetail
+import com.davidegea.spotifystats.ui.components.EntityHero
+import com.davidegea.spotifystats.ui.components.LocalArtwork
+import com.davidegea.spotifystats.ui.components.MetricBarRow
+import com.davidegea.spotifystats.ui.components.SectionHeading
+import com.davidegea.spotifystats.ui.components.StatPill
+import com.davidegea.spotifystats.ui.components.StatsPage
+import com.davidegea.spotifystats.ui.components.listeningTime
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -59,49 +64,45 @@ private fun AlbumDetailScreen(
 ) {
     val unknown = stringResource(R.string.detail_unknown)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        TextButton(onClick = onBack) {
-            Text(stringResource(R.string.action_back))
-        }
-
-        Text(detail.name, style = MaterialTheme.typography.headlineMedium)
-        detail.artistName?.let {
-            Text(it, style = MaterialTheme.typography.titleMedium)
-        }
+    StatsPage(stringResource(R.string.library_albums), onBack) {
+        EntityHero(
+            eyebrow = stringResource(R.string.library_albums),
+            title = detail.name,
+            subtitle = detail.artistName,
+            primaryValue = NumberFormat.getIntegerInstance().format(detail.totalPlays),
+            primaryLabel = stringResource(R.string.metric_plays),
+            secondaryValue = listeningTime(detail.totalListeningMs),
+            secondaryLabel = stringResource(R.string.metric_listening),
+            roundArtwork = false,
+        )
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            MetricCard(
-                label = stringResource(R.string.metric_plays),
-                value = detail.totalPlays.toString(),
+            StatPill(
+                label = stringResource(R.string.metric_tracks),
+                value = NumberFormat.getIntegerInstance().format(detail.uniqueTracks),
                 modifier = Modifier.weight(1f),
             )
-            MetricCard(
-                label = stringResource(R.string.metric_listening),
-                value = formatListeningTime(detail.totalListeningMs),
+            StatPill(
+                label = stringResource(R.string.detail_active_days_label),
+                value = NumberFormat.getIntegerInstance().format(detail.activeDays),
                 modifier = Modifier.weight(1f),
             )
         }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
+        ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text(
-                    stringResource(R.string.detail_album_history),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(stringResource(R.string.detail_different_songs, detail.uniqueTracks))
-                Text(stringResource(R.string.detail_active_days, detail.activeDays))
+                SectionHeading(stringResource(R.string.detail_album_history))
                 Text(
                     stringResource(
                         R.string.detail_meaningful_album_listens,
@@ -129,65 +130,68 @@ private fun AlbumDetailScreen(
             }
         }
 
-        Text(
-            stringResource(R.string.detail_album_year_history),
-            style = MaterialTheme.typography.titleLarge,
-        )
+        SectionHeading(stringResource(R.string.detail_album_year_history))
         if (detail.playsByYear.isEmpty()) {
-            Text(stringResource(R.string.detail_no_play_history))
+            Text(
+                stringResource(R.string.detail_no_play_history),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         } else {
+            val maxListening = detail.playsByYear.maxOf { it.listeningMs }.coerceAtLeast(1)
             detail.playsByYear.forEach { year ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            year.year.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(
-                            stringResource(
-                                R.string.plays_and_time,
-                                year.plays,
-                                formatListeningTime(year.listeningMs),
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                }
+                MetricBarRow(
+                    label = year.year.toString(),
+                    value = stringResource(
+                        R.string.plays_and_time,
+                        year.plays,
+                        listeningTime(year.listeningMs),
+                    ),
+                    progress = year.listeningMs.toFloat() / maxListening,
+                )
             }
         }
 
-        Text(
-            stringResource(R.string.detail_top_songs),
-            style = MaterialTheme.typography.titleLarge,
-        )
+        SectionHeading(stringResource(R.string.detail_top_songs))
         if (detail.topTracks.isEmpty()) {
-            Text(stringResource(R.string.detail_no_song_history))
+            Text(
+                stringResource(R.string.detail_no_song_history),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         } else {
             detail.topTracks.forEachIndexed { index, track ->
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onTrackClick(track.id) },
+                    onClick = { onTrackClick(track.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ),
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(14.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text((index + 1).toString(), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            (index + 1).toString().padStart(2, '0'),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        LocalArtwork(track.name, size = 52.dp)
                         Column(modifier = Modifier.weight(1f)) {
                             Text(track.name, style = MaterialTheme.typography.titleMedium)
+                            track.artistName?.let {
+                                Text(
+                                    it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             Text(
                                 stringResource(
                                     R.string.plays_and_time,
                                     track.plays,
-                                    formatListeningTime(track.listeningMs),
+                                    listeningTime(track.listeningMs),
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
@@ -201,45 +205,12 @@ private fun AlbumDetailScreen(
 
 @Composable
 private fun DetailMessage(message: String, onBack: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        TextButton(onClick = onBack) {
-            Text(stringResource(R.string.action_back))
-        }
+    StatsPage(stringResource(R.string.library_albums), onBack) {
         Text(message, style = MaterialTheme.typography.titleLarge)
-    }
-}
-
-@Composable
-private fun MetricCard(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
-    Card(modifier = modifier) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(value, style = MaterialTheme.typography.headlineSmall)
-            Text(label, style = MaterialTheme.typography.bodyMedium)
-        }
     }
 }
 
 private fun formatDate(epochMs: Long?, unknown: String): String {
     if (epochMs == null) return unknown
     return SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date(epochMs))
-}
-
-private fun formatListeningTime(milliseconds: Long): String {
-    val totalMinutes = milliseconds / 60_000
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-    return if (hours > 0) hours.toString() + "h " + minutes.toString() + "m"
-    else minutes.toString() + "m"
 }

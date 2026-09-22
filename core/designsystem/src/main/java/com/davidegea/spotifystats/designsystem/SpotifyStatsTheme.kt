@@ -15,6 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 private val LightColors = lightColorScheme(
+    surfaceContainer = Color(0xFFEBEFE8),
+    surfaceContainerLow = Color(0xFFF0F3EC),
+    surfaceContainerHigh = Color(0xFFE3EAE1),
+    tertiary = Color(0xFF655492),
+    tertiaryContainer = Color(0xFFEADDFF),
+    onTertiaryContainer = Color(0xFF251244),
     primary = Color(0xFF116B5B),
     onPrimary = Color.White,
     primaryContainer = Color(0xFFB8F1DF),
@@ -23,15 +29,21 @@ private val LightColors = lightColorScheme(
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFD0E8DF),
     onSecondaryContainer = Color(0xFF0A1F1A),
-    background = Color(0xFFF7FAF8),
+    background = Color(0xFFF6F7F2),
     onBackground = Color(0xFF171D1B),
-    surface = Color(0xFFF7FAF8),
+    surface = Color(0xFFF6F7F2),
     onSurface = Color(0xFF171D1B),
     surfaceVariant = Color(0xFFDDE5E1),
     onSurfaceVariant = Color(0xFF414946),
 )
 
 private val DarkColors = darkColorScheme(
+    surfaceContainer = Color(0xFF1C2824),
+    surfaceContainerLow = Color(0xFF18221F),
+    surfaceContainerHigh = Color(0xFF27352F),
+    tertiary = Color(0xFFD2C5FF),
+    tertiaryContainer = Color(0xFF483B67),
+    onTertiaryContainer = Color(0xFFEDE5FF),
     primary = Color(0xFF63D7BD),
     onPrimary = Color(0xFF00382E),
     primaryContainer = Color(0xFF005143),
@@ -40,9 +52,9 @@ private val DarkColors = darkColorScheme(
     onSecondary = Color(0xFF20352F),
     secondaryContainer = Color(0xFF374B45),
     onSecondaryContainer = Color(0xFFD0E8DF),
-    background = Color(0xFF0D1513),
+    background = Color(0xFF101817),
     onBackground = Color(0xFFDDE5E1),
-    surface = Color(0xFF0D1513),
+    surface = Color(0xFF101817),
     onSurface = Color(0xFFDDE5E1),
     surfaceVariant = Color(0xFF414946),
     onSurfaceVariant = Color(0xFFC1C9C5),

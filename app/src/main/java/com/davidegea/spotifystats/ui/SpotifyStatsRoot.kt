@@ -1,5 +1,17 @@
 package com.davidegea.spotifystats.ui
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.ui.unit.dp
+import com.davidegea.spotifystats.R
+import com.davidegea.spotifystats.domain.analytics.DateRanges
+import com.davidegea.spotifystats.ui.components.StatsPage
+import com.davidegea.spotifystats.ui.components.StatsTopBar
+import com.davidegea.spotifystats.ui.importhistory.ImportHistorySection
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -51,11 +63,34 @@ fun SpotifyStatsRoot(
     when {
         exploreWithoutData || launchState == AppLaunchState.Ready -> SpotifyStatsAppShell()
         launchState == AppLaunchState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
+            androidx.compose.material3.Surface(Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    com.davidegea.spotifystats.ui.components.LocalArtwork(
+                        name = stringResource(R.string.app_name),
+                        size = 88.dp,
+                        round = true,
+                    )
+                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        stringResource(R.string.app_name),
+                        style = androidx.compose.material3.MaterialTheme.typography.headlineMedium,
+                    )
+                    Spacer(Modifier.height(20.dp))
+                    CircularProgressIndicator(Modifier.width(120.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        stringResource(R.string.state_loading),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         else -> {
@@ -73,105 +108,79 @@ private fun SpotifyStatsAppShell() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val topLevelRoutes = AppDestination.entries.map { it.route }.toSet()
-    val showBottomBar = currentRoute in topLevelRoutes
-
-    Scaffold(
-        bottomBar = {
-            if (showBottomBar) {
-                NavigationBar {
-                    AppDestination.entries.forEach { destination ->
-                        NavigationBarItem(
-                            selected = currentRoute == destination.route,
-                            onClick = {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector = destination.icon,
-                                    contentDescription = stringResource(destination.labelRes),
-                                )
-                            },
-                            label = { Text(stringResource(destination.labelRes)) },
-                        )
-                    }
+    val showNavigation = currentRoute in AppDestination.entries.map { it.route }
+    val navigate: (AppDestination) -> Unit = { destination ->
+        navController.navigate(destination.route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val expanded = maxWidth >= 840.dp
+        Scaffold(bottomBar = {
+            if (showNavigation && !expanded) NavigationBar {
+                AppDestination.entries.forEach { destination ->
+                    NavigationBarItem(selected = currentRoute == destination.route, onClick = { navigate(destination) },
+                        icon = { Icon(destination.icon, stringResource(destination.labelRes)) }, label = { Text(stringResource(destination.labelRes)) })
                 }
             }
-        },
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = AppDestination.Home.route,
-            modifier = Modifier.padding(innerPadding),
-        ) {
-            composable(AppDestination.Home.route) {
-                HomeRoute(
-                    onTrackClick = { trackId ->
-                        navController.navigate("track/" + trackId)
-                    },
-                    onArtistClick = { artistId ->
-                        navController.navigate("artist/" + artistId)
-                    },
-                    onAlbumClick = { albumId ->
-                        navController.navigate("album/" + albumId)
-                    },
-                )
-            }
-            composable(AppDestination.Library.route) {
-                LibraryRoute(
-                    onTrackClick = { trackId ->
-                        navController.navigate("track/" + trackId)
-                    },
-                    onArtistClick = { artistId ->
-                        navController.navigate("artist/" + artistId)
-                    },
-                    onAlbumClick = { albumId ->
-                        navController.navigate("album/" + albumId)
-                    },
-                )
-            }
-            composable(AppDestination.Insights.route) {
-                InsightsRoute(
-                    onTrack = { navController.navigate("track/$it") },
-                    onArtist = { navController.navigate("artist/$it") },
-                    onCalendar = { navController.navigate("calendar") },
-                )
-            }
-            composable(AppDestination.You.route) {
-                YouRoute(
-                    onWrapped = { navController.navigate("wrapped") },
-                    onCalendar = { navController.navigate("calendar") },
-                )
-            }
-            composable("calendar") {
-                CalendarRoute(
-                    onBack = { navController.navigateUp() },
-                    onTrack = { navController.navigate("track/$it") },
-                    onArtist = { navController.navigate("artist/$it") },
-                )
-            }
-            composable("wrapped") {
-                WrappedRoute(onBack = { navController.navigateUp() })
-            }
-            composable(TRACK_DETAIL_ROUTE) {
-                TrackDetailRoute(onBack = navController::navigateUp)
-            }
-            composable(ARTIST_DETAIL_ROUTE) {
-                ArtistDetailRoute(onBack = navController::navigateUp)
-            }
-            composable(ALBUM_DETAIL_ROUTE) {
-                AlbumDetailRoute(
-                    onBack = navController::navigateUp,
-                    onTrackClick = { trackId ->
-                        navController.navigate("track/" + trackId)
-                    },
-                )
+        }) { innerPadding ->
+            Row(Modifier.fillMaxSize().padding(innerPadding)) {
+                if (showNavigation && expanded) NavigationRail(Modifier.fillMaxHeight()) {
+                    AppDestination.entries.forEach { destination ->
+                        NavigationRailItem(selected = currentRoute == destination.route, onClick = { navigate(destination) },
+                            icon = { Icon(destination.icon, stringResource(destination.labelRes)) }, label = { Text(stringResource(destination.labelRes)) })
+                    }
+                }
+                NavHost(
+                    navController = navController, startDestination = AppDestination.Home.route,
+                    modifier = Modifier.weight(1f),
+                    enterTransition = { fadeIn(tween(240)) }, exitTransition = { fadeOut(tween(180)) },
+                    popEnterTransition = { fadeIn(tween(240)) }, popExitTransition = { fadeOut(tween(180)) },
+                ) {
+                    composable(AppDestination.Home.route) {
+                        HomeRoute(onTrackClick = { navController.navigate("track/$it") },
+                            onArtistClick = { navController.navigate("artist/$it") },
+                            onAlbumClick = { navController.navigate("album/$it") },
+                            onImport = { navController.navigate("import") })
+                    }
+                    composable(AppDestination.Library.route) {
+                        LibraryRoute(onTrackClick = { navController.navigate("track/$it") },
+                            onArtistClick = { navController.navigate("artist/$it") },
+                            onAlbumClick = { navController.navigate("album/$it") })
+                    }
+                    composable(AppDestination.Insights.route) {
+                        InsightsRoute(onTrack = { navController.navigate("track/$it") },
+                            onArtist = { navController.navigate("artist/$it") },
+                            onCalendar = { navController.navigate("calendar") })
+                    }
+                    composable(AppDestination.You.route) {
+                        YouRoute(onWrapped = { navController.navigate("wrapped") },
+                            onCalendar = { navController.navigate("calendar") }, onImport = { navController.navigate("import") })
+                    }
+                    composable("calendar") {
+                        CalendarRoute(onBack = { navController.navigateUp() }, onTrack = { navController.navigate("track/$it") },
+                            onArtist = { navController.navigate("artist/$it") }, onDay = { navController.navigate("day/$it") })
+                    }
+                    composable("day/{date}") { entry ->
+                        val date = requireNotNull(entry.arguments?.getString("date"))
+                        Column(Modifier.fillMaxSize()) {
+                            StatsTopBar(date, onBack = { navController.navigateUp() })
+                            Box(Modifier.weight(1f)) {
+                                LibraryRoute(onTrackClick = { navController.navigate("track/$it") },
+                                    onArtistClick = { navController.navigate("artist/$it") },
+                                    onAlbumClick = { navController.navigate("album/$it") },
+                                    initialRange = DateRanges.dates(date, date), initialHistory = true)
+                            }
+                        }
+                    }
+                    composable("import") { StatsPage(stringResource(R.string.import_title), { navController.navigateUp() }) { ImportHistorySection() } }
+                    composable("wrapped") { WrappedRoute(onBack = { navController.navigateUp() }) }
+                    composable(TRACK_DETAIL_ROUTE) { TrackDetailRoute(onBack = { navController.navigateUp() }) }
+                    composable(ARTIST_DETAIL_ROUTE) { ArtistDetailRoute(onBack = { navController.navigateUp() }, onTrackClick = { navController.navigate("track/$it") }) }
+                    composable(ALBUM_DETAIL_ROUTE) { AlbumDetailRoute(onBack = { navController.navigateUp() }, onTrackClick = { navController.navigate("track/$it") }) }
+                }
             }
         }
     }

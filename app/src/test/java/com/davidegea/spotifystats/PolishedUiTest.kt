@@ -1,0 +1,211 @@
+package com.davidegea.spotifystats
+
+import android.app.Application
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import com.davidegea.spotifystats.ui.calendar.MonthGrid
+import android.graphics.Bitmap
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.activity.ComponentActivity
+import android.graphics.Canvas
+import com.davidegea.spotifystats.designsystem.SpotifyStatsTheme
+import com.davidegea.spotifystats.domain.analytics.DateRanges
+import com.davidegea.spotifystats.domain.model.*
+import com.davidegea.spotifystats.ui.components.ActivityChart
+import com.davidegea.spotifystats.ui.components.EntityHero
+import com.davidegea.spotifystats.ui.components.MetricBarRow
+import com.davidegea.spotifystats.ui.home.HomeScreen
+import com.davidegea.spotifystats.ui.home.HomeUiState
+import com.davidegea.spotifystats.ui.insights.ListeningHeatmap
+import com.davidegea.spotifystats.ui.library.LibraryScreen
+import com.davidegea.spotifystats.ui.library.LibraryUiState
+import com.davidegea.spotifystats.ui.wrapped.WrappedStories
+import com.davidegea.spotifystats.ui.you.DataControlState
+import com.davidegea.spotifystats.ui.you.YouScreen
+import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28], application = Application::class, qualifiers = "w411dp-h891dp")
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class PolishedUiTest {
+    @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
+    private val range = DateRanges.dates("2026-09-01", "2026-09-22")
+    private val tracks = listOf(
+        TrackRanking(1, "Blinding Lights", "The Weeknd", 84, 16_560_000),
+        TrackRanking(2, "Midnight City", "M83", 62, 13_640_000),
+        TrackRanking(3, "Instant Crush", "Daft Punk", 47, 10_800_000),
+        TrackRanking(4, "Something About Us", "Daft Punk", 36, 8_300_000),
+    )
+    private val artists = listOf(ArtistRanking(7, "The Weeknd", 294, 46_000_000))
+    private val albums = listOf(AlbumRanking(9, "After Hours", "The Weeknd", 136, 34_000_000))
+    private val days = (1..22).map { day -> DailyListening("2026-09-" + day.toString().padStart(2, '0'), (day * 7).toLong(), (day % 6 + 1) * 1_800_000L) }
+
+    @Test fun homeHasOneHeroAndACompactImportAction() {
+        compose.setContent { SpotifyStatsTheme(darkTheme = true) { Surface {
+            HomeScreen(HomeUiState(loading = false, totalPlays = 2847, totalListeningMs = 329_040_000, uniqueTracks = 312, uniqueArtists = 87,
+                customRange = range, range = range, daily = days, topTrack = tracks[0], topArtist = artists[0], topAlbum = albums[0]), {}, {}, {}, {}, {}, {})
+        } } }
+        compose.onNodeWithText("2,847").assertExists()
+        snapshot("home-dark")
+        compose.onNodeWithText("Import more history").performScrollTo().assertIsDisplayed()
+        compose.onAllNodesWithText("Choose history files").assertCountEquals(0)
+    }
+
+    @Test fun libraryTabsKeepRankingNavigationAndSearch() {
+        var clicked = 0L
+        compose.setContent { SpotifyStatsTheme { Surface {
+            LibraryScreen(LibraryUiState(loading = false, tracks = tracks, artists = artists, albums = albums), {}, {}, {}, {}, {}, { clicked = it }, { clicked = it }, { clicked = it })
+        } } }
+        compose.onNodeWithText("Blinding Lights").assertExists()
+        snapshot("library-light")
+        compose.onNodeWithText("Artists").performClick()
+        compose.onNodeWithText("The Weeknd").performClick()
+        assertEquals(7L, clicked)
+        compose.onNodeWithText("History").performClick()
+        compose.onNodeWithText("No listening data yet").assertExists()
+    }
+
+    @Test fun heatmapCanBeExploredWithoutSmallTouchTargets() {
+        compose.setContent { SpotifyStatsTheme { Surface { Column {
+            ListeningHeatmap(listOf(ListeningHeatmapCell(2, 21, 84, 16_320_000), ListeningHeatmapCell(1, 21, 3, 60_000)))
+        } } } }
+        compose.onNodeWithText("Tue · 21:00 — 4h 32m · 84 plays").assertExists()
+        snapshot("heatmap-light")
+        compose.onNodeWithText("Explore exact time").performClick()
+        compose.onNodeWithText("Mon").performClick()
+        compose.onNodeWithText("Mon · 21:00 — 0h 1m · 3 plays").assertExists()
+    }
+
+    @Test fun chartSelectionIncludesZeroListeningDays() {
+        compose.setContent { SpotifyStatsTheme { Surface {
+            ActivityChart(listOf(DailyListening("2026-09-01", 8, 600_000)), DateRanges.dates("2026-09-01", "2026-09-02"))
+        } } }
+        compose.onNodeWithText("2026-09-02 · 0 plays · 0h 0m").assertExists()
+        compose.onNodeWithText("Previous day").performClick()
+        compose.onNodeWithText("2026-09-01 · 8 plays · 0h 10m").assertExists()
+    }
+
+    @Test fun entityDetailPrimitivesKeepTheMusicProfileHierarchy() {
+        compose.setContent { SpotifyStatsTheme(darkTheme = true) { Surface {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                EntityHero(
+                    eyebrow = "Artist",
+                    title = "The Weeknd",
+                    subtitle = "Most active year: 2026",
+                    primaryValue = "1,294",
+                    primaryLabel = "Plays",
+                    secondaryValue = "91h 24m",
+                    secondaryLabel = "Listening",
+                    roundArtwork = true,
+                )
+                MetricBarRow("2026", "#1 · 1,294 plays · 91h 24m", 1f)
+                MetricBarRow("2025", "#3 · 684 plays · 44h 8m", 0.53f)
+            }
+        } } }
+        compose.onNodeWithText("The Weeknd").assertExists()
+        compose.onNodeWithText("1,294").assertExists()
+        snapshot("entity-detail-dark")
+    }
+
+    @Test fun youGroupsSettingsAndUsesAThemeBottomSheet() {
+        var selectedTheme = ""
+        compose.setContent { SpotifyStatsTheme { Surface {
+            YouScreen(
+                state = DataControlState(),
+                theme = "system",
+                language = "system",
+                onWrapped = {},
+                onCalendar = {},
+                onImport = {},
+                onExport = {},
+                onRestore = {},
+                onDelete = {},
+                onThemeSelected = { selectedTheme = it },
+                onLanguageSelected = {},
+            )
+        } } }
+        compose.onNodeWithText("Your music").assertExists()
+        compose.onNodeWithText("Theme").performScrollTo().performClick()
+        compose.onNodeWithText("Dark").assertIsDisplayed()
+        snapshot("you-theme-sheet")
+        compose.onNodeWithText("Dark").performClick()
+        assertEquals("dark", selectedTheme)
+    }
+
+    @Test fun wrappedHasSwipeAndButtonNavigationAndShareActions() {
+        compose.setContent { SpotifyStatsTheme { WrappedStories(Recap(range, OverviewStats(2847, 329_040_000, 312, 87), tracks, artists, albums, 28), {}) } }
+        compose.onNodeWithText("Story 1 of 4").assertExists()
+        snapshot("wrapped-overview")
+        compose.onNodeWithText("Next").performClick()
+        compose.onNodeWithText("Blinding Lights").assertIsDisplayed()
+        compose.onNodeWithText("Next").performClick()
+        compose.onNodeWithText("The Weeknd").assertIsDisplayed()
+        compose.onNodeWithText("Next").performClick()
+        compose.onNodeWithText("Share story sequence").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Share overview card").assertExists()
+    }
+
+
+    @Test fun monthGridOpensTheRightLeapDay() {
+        var selected = ""
+        compose.setContent { SpotifyStatsTheme { Surface { Column {
+            MonthGrid(2024, 1, mapOf("2024-02-29" to DailyListening("2024-02-29", 43, 8_340_000))) { selected = it }
+        } } } }
+        snapshot("calendar-leap-month")
+        compose.onNodeWithContentDescription("2024-02-29: 43 events, 2h 19m").performClick()
+        assertEquals("2024-02-29", selected)
+    }
+
+    @Test
+    @Config(qualifiers = "w320dp-h640dp")
+    fun wrappedSharingRemainsReachableWithLargeTextOnSmallPhone() {
+        compose.setContent {
+            val config = Configuration(LocalConfiguration.current).apply { fontScale = 1.8f }
+            CompositionLocalProvider(LocalConfiguration provides config, LocalDensity provides Density(LocalDensity.current.density, 1.8f)) {
+                SpotifyStatsTheme { WrappedStories(Recap(range, OverviewStats(2847, 329_040_000, 312, 87), tracks, artists, albums, 28), {}) }
+            }
+        }
+        repeat(3) { compose.onNodeWithText("Next").performClick() }
+        compose.onNodeWithText("Share story sequence").performScrollTo().assertIsDisplayed()
+        snapshot("wrapped-large-text")
+    }
+
+    @Test
+    @Config(qualifiers = "w1000dp-h840dp")
+    fun homeRendersAnExpandedLayout() {
+        compose.setContent { SpotifyStatsTheme { Surface {
+            HomeScreen(HomeUiState(loading = false, totalPlays = 2847, totalListeningMs = 329_040_000, uniqueTracks = 312, uniqueArtists = 87,
+                customRange = range, range = range, daily = days, topTrack = tracks[0], topArtist = artists[0], topAlbum = albums[0]), {}, {}, {}, {}, {}, {})
+        } } }
+        compose.onNodeWithText("Top song").assertIsDisplayed()
+        snapshot("home-tablet")
+    }
+
+    private fun snapshot(name: String) {
+        compose.waitForIdle()
+        // PixelCopy is not driven by Robolectric. Render the actual laid-out window with its native Canvas.
+        compose.runOnIdle {
+            val view = compose.activity.window.decorView
+            val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+            view.draw(Canvas(bitmap))
+            File("build/reports/ui-polish").mkdirs()
+            File("build/reports/ui-polish/$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+        }
+    }
+}
