@@ -328,4 +328,5 @@
     <string name="detail_all_time_rank_label">All-time rank</string>
     <string name="heatmap_explore_controls">Explore exact time</string>
     <string name="heatmap_hide_controls">Hide exact-time controls</string>
+    <string name="you_coming_soon">Coming soon</string>
 </resources>
