@@ -24,6 +24,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
@@ -168,46 +169,79 @@ fun EntityHero(
     secondaryLabel: String,
     roundArtwork: Boolean,
 ) {
+    val largeText = LocalConfiguration.current.fontScale > 1.3f
     HeroSurface {
         Text(
             eyebrow.uppercase(java.util.Locale.getDefault()),
             style = MaterialTheme.typography.labelLarge,
             color = StatsPalette.mint,
         )
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            LocalArtwork(title, size = 104.dp, round = roundArtwork)
-            Column(
-                Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                subtitle?.let {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White.copy(alpha = 0.78f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val compact = maxWidth < 360.dp || largeText
+            if (compact) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    LocalArtwork(
+                        title,
+                        size = if (largeText) 88.dp else 104.dp,
+                        round = roundArtwork,
                     )
+                    EntityTitle(title, subtitle)
+                }
+            } else {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    LocalArtwork(title, size = 104.dp, round = roundArtwork)
+                    EntityTitle(title, subtitle, Modifier.weight(1f))
                 }
             }
         }
         HorizontalDivider(color = StatsPalette.mint.copy(alpha = 0.22f))
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            HeroMetric(primaryValue, primaryLabel, Modifier.weight(1f))
-            HeroMetric(secondaryValue, secondaryLabel, Modifier.weight(1f))
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            if (maxWidth < 320.dp || largeText) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    HeroMetric(primaryValue, primaryLabel)
+                    HeroMetric(secondaryValue, secondaryLabel)
+                }
+            } else {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                ) {
+                    HeroMetric(primaryValue, primaryLabel, Modifier.weight(1f))
+                    HeroMetric(secondaryValue, secondaryLabel, Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EntityTitle(
+    title: String,
+    subtitle: String?,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineMedium,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
+        subtitle?.let {
+            Text(
+                it,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.78f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
