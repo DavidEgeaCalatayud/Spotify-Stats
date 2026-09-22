@@ -324,4 +324,6 @@
     <string name="chart_minimum">Día más tranquilo: %1$s · %2$s</string>
     <string name="chart_comparison_legend">Barras: periodo seleccionado · Líneas: intervalo anterior</string>
     <string name="chart_previous_value">Intervalo anterior · %1$s · %2$s</string>
+    <string name="detail_active_days_label">Días activos</string>
+    <string name="detail_all_time_rank_label">Puesto histórico</string>
 </resources>
