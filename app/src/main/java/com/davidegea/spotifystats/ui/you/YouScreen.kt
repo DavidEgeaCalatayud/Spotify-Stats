@@ -23,7 +23,6 @@ import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.ui.components.*
 import com.davidegea.spotifystats.ui.settings.AppPreferences
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YouRoute(
     onWrapped: () -> Unit,
@@ -34,9 +33,6 @@ fun YouRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var pendingRestore by rememberSaveable { mutableStateOf<String?>(null) }
-    var confirmDelete by rememberSaveable { mutableStateOf(false) }
-    var privacy by rememberSaveable { mutableStateOf(false) }
-    var preference by rememberSaveable { mutableStateOf<String?>(null) }
     var theme by remember { mutableStateOf(AppPreferences.theme(context)) }
     var language by remember { mutableStateOf(AppPreferences.language(context)) }
 
@@ -50,6 +46,77 @@ fun YouRoute(
     ) { uri ->
         pendingRestore = uri?.toString()
     }
+
+    YouScreen(
+        state = state,
+        theme = theme,
+        language = language,
+        onWrapped = onWrapped,
+        onCalendar = onCalendar,
+        onImport = onImport,
+        onExport = {
+            export.launch(
+                "MusicStatsBackup_" + isoDate(System.currentTimeMillis()) + ".zip",
+            )
+        },
+        onRestore = {
+            restore.launch(
+                arrayOf("application/zip", "application/octet-stream"),
+            )
+        },
+        onDelete = viewModel::delete,
+        onThemeSelected = { value ->
+            theme = value
+            AppPreferences.setTheme(context, value)
+        },
+        onLanguageSelected = { value ->
+            language = value
+            AppPreferences.setLanguage(context, value)
+        },
+    )
+
+    pendingRestore?.let { uri ->
+        AlertDialog(
+            onDismissRequest = { pendingRestore = null },
+            title = { Text(stringResource(R.string.you_restore_title)) },
+            text = { Text(stringResource(R.string.you_restore_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingRestore = null
+                        viewModel.restore(uri)
+                    },
+                ) {
+                    Text(stringResource(R.string.you_restore_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRestore = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun YouScreen(
+    state: DataControlState,
+    theme: String,
+    language: String,
+    onWrapped: () -> Unit,
+    onCalendar: () -> Unit,
+    onImport: () -> Unit,
+    onExport: () -> Unit,
+    onRestore: () -> Unit,
+    onDelete: () -> Unit,
+    onThemeSelected: (String) -> Unit,
+    onLanguageSelected: (String) -> Unit,
+) {
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    var privacy by rememberSaveable { mutableStateOf(false) }
+    var preference by rememberSaveable { mutableStateOf<String?>(null) }
 
     StatsPage {
         Text(
@@ -84,22 +151,14 @@ fun YouRoute(
                 stringResource(R.string.you_export_backup),
                 Icons.Default.AccountBox,
                 enabled = !state.busy,
-                onClick = {
-                    export.launch(
-                        "MusicStatsBackup_" + isoDate(System.currentTimeMillis()) + ".zip",
-                    )
-                },
+                onClick = onExport,
             )
             HorizontalDivider()
             SettingsRow(
                 stringResource(R.string.you_restore_backup),
                 Icons.Default.Refresh,
                 enabled = !state.busy,
-                onClick = {
-                    restore.launch(
-                        arrayOf("application/zip", "application/octet-stream"),
-                    )
-                },
+                onClick = onRestore,
             )
         }
         Text(
@@ -252,11 +311,9 @@ fun YouRoute(
                         },
                         modifier = Modifier.clickable {
                             if (selected == "theme") {
-                                theme = value
-                                AppPreferences.setTheme(context, value)
+                                onThemeSelected(value)
                             } else {
-                                language = value
-                                AppPreferences.setLanguage(context, value)
+                                onLanguageSelected(value)
                             }
                             preference = null
                         },
@@ -264,29 +321,6 @@ fun YouRoute(
                 }
             }
         }
-    }
-
-    pendingRestore?.let { uri ->
-        AlertDialog(
-            onDismissRequest = { pendingRestore = null },
-            title = { Text(stringResource(R.string.you_restore_title)) },
-            text = { Text(stringResource(R.string.you_restore_body)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        pendingRestore = null
-                        viewModel.restore(uri)
-                    },
-                ) {
-                    Text(stringResource(R.string.you_restore_action))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingRestore = null }) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            },
-        )
     }
 
     if (confirmDelete) {
@@ -298,7 +332,7 @@ fun YouRoute(
                 TextButton(
                     onClick = {
                         confirmDelete = false
-                        viewModel.delete()
+                        onDelete()
                     },
                 ) {
                     Text(stringResource(R.string.you_delete_action))
