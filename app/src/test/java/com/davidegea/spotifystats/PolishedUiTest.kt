@@ -81,6 +81,7 @@ class PolishedUiTest {
         } } } }
         compose.onNodeWithText("Tue · 21:00 — 4h 32m · 84 plays").assertExists()
         snapshot("heatmap-light")
+        compose.onNodeWithText("Explore exact time").performClick()
         compose.onNodeWithText("Mon").performClick()
         compose.onNodeWithText("Mon · 21:00 — 0h 1m · 3 plays").assertExists()
     }
