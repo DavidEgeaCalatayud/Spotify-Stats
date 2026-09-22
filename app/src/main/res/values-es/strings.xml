@@ -328,4 +328,5 @@
     <string name="detail_all_time_rank_label">Puesto histórico</string>
     <string name="heatmap_explore_controls">Explorar hora exacta</string>
     <string name="heatmap_hide_controls">Ocultar controles de hora</string>
+    <string name="you_coming_soon">Próximamente</string>
 </resources>
