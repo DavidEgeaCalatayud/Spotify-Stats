@@ -63,11 +63,34 @@ fun SpotifyStatsRoot(
     when {
         exploreWithoutData || launchState == AppLaunchState.Ready -> SpotifyStatsAppShell()
         launchState == AppLaunchState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
+            androidx.compose.material3.Surface(Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    com.davidegea.spotifystats.ui.components.LocalArtwork(
+                        name = stringResource(R.string.app_name),
+                        size = 88.dp,
+                        round = true,
+                    )
+                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        stringResource(R.string.app_name),
+                        style = androidx.compose.material3.MaterialTheme.typography.headlineMedium,
+                    )
+                    Spacer(Modifier.height(20.dp))
+                    CircularProgressIndicator(Modifier.width(120.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        stringResource(R.string.state_loading),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         else -> {
@@ -99,7 +122,7 @@ private fun SpotifyStatsAppShell() {
             if (showNavigation && !expanded) NavigationBar {
                 AppDestination.entries.forEach { destination ->
                     NavigationBarItem(selected = currentRoute == destination.route, onClick = { navigate(destination) },
-                        icon = { Icon(destination.icon, null) }, label = { Text(stringResource(destination.labelRes)) })
+                        icon = { Icon(destination.icon, stringResource(destination.labelRes)) }, label = { Text(stringResource(destination.labelRes)) })
                 }
             }
         }) { innerPadding ->
@@ -107,7 +130,7 @@ private fun SpotifyStatsAppShell() {
                 if (showNavigation && expanded) NavigationRail(Modifier.fillMaxHeight()) {
                     AppDestination.entries.forEach { destination ->
                         NavigationRailItem(selected = currentRoute == destination.route, onClick = { navigate(destination) },
-                            icon = { Icon(destination.icon, null) }, label = { Text(stringResource(destination.labelRes)) })
+                            icon = { Icon(destination.icon, stringResource(destination.labelRes)) }, label = { Text(stringResource(destination.labelRes)) })
                     }
                 }
                 NavHost(
