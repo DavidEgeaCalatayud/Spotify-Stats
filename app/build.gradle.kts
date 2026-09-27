@@ -71,7 +71,7 @@ android {
 }
 
 dependencies {
-    implementation("androidx.hilt:hilt-lifecycle-viewmodel-compose:1.3.0")
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel-compose:1.4.0")
     testImplementation(libs.junit)
     testImplementation("org.robolectric:robolectric:4.17")
     testImplementation(platform(libs.androidx.compose.bom))
