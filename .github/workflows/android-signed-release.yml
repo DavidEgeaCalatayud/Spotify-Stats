@@ -88,7 +88,7 @@ jobs:
           sha256sum "$APK" "$AAB" | tee app/build/outputs/SHA256SUMS.txt
 
       - name: Upload signed release candidate
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: spotify-stats-signed-release-candidate
           path: |
