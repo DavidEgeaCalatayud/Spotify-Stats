@@ -1,5 +1,8 @@
 package com.davidegea.spotifystats.ui.components
 
+import android.content.Intent
+import android.net.Uri
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -24,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -34,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.designsystem.StatsPalette
 import com.davidegea.spotifystats.designsystem.StatsSpacing
+import com.davidegea.spotifystats.ui.settings.AppPreferences
 import java.text.NumberFormat
 
 @Composable
@@ -168,7 +173,11 @@ fun EntityHero(
     secondaryValue: String,
     secondaryLabel: String,
     roundArtwork: Boolean,
+    artworkUri: String? = null,
 ) {
+    val appContext = LocalContext.current
+    val onlineArtwork = remember(appContext) { AppPreferences.onlineArtwork(appContext) }
+    val artworkId = remember(artworkUri) { SpotifyArtworkSource.trackId(artworkUri) }
     val configuration = LocalConfiguration.current
     val largeText = configuration.fontScale > 1.3f
     val locale = configuration.locales[0]
@@ -182,10 +191,10 @@ fun EntityHero(
             val compact = maxWidth < 360.dp || largeText
             if (compact) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    LocalArtwork(
-                        title,
+                    MusicArtwork(
+                        title, artworkUri, onlineArtwork,
                         size = if (largeText) 88.dp else 104.dp,
-                        round = roundArtwork,
+                        round = roundArtwork && artworkId == null,
                     )
                     EntityTitle(title, subtitle)
                 }
@@ -195,9 +204,16 @@ fun EntityHero(
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    LocalArtwork(title, size = 104.dp, round = roundArtwork)
+                    MusicArtwork(title, artworkUri, onlineArtwork, size = 104.dp, round = roundArtwork && artworkId == null)
                     EntityTitle(title, subtitle, Modifier.weight(1f))
                 }
+            }
+        }
+        if (onlineArtwork && artworkId != null) {
+            TextButton(onClick = {
+                appContext.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(SpotifyArtworkSource.trackUrl(artworkId))))
+            }) {
+                Text(stringResource(R.string.artwork_spotify_credit), color = StatsPalette.mint)
             }
         }
         HorizontalDivider(color = StatsPalette.mint.copy(alpha = 0.22f))
