@@ -69,8 +69,8 @@ Status for the V1 release-candidate cut. Checked items describe code that is imp
 - [x] Validated staged restore and atomic replacement
 - [x] Delete local history and cached share images
 - [x] Privacy screen
-- [x] No INTERNET permission in offline V1
-- [x] CI check against accidental INTERNET permission in built release APK
+- [x] Local analytics stay offline; optional oEmbed artwork requires INTERNET and explicit opt-in
+- [x] CI checks declared INTERNET and the default-off artwork consent contract
 - [ ] Backup/restore physical-device acceptance
 
 ## Explicitly post-V1
