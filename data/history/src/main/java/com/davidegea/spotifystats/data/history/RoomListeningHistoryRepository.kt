@@ -114,6 +114,7 @@ class RoomListeningHistoryRepository(
                     name = row.name,
                     plays = row.plays,
                     listeningMs = row.listeningMs,
+                    representativeTrackUri = row.representativeTrackUri,
                 )
             }
         }
@@ -131,6 +132,7 @@ class RoomListeningHistoryRepository(
                     artistName = row.artistName,
                     plays = row.plays,
                     listeningMs = row.listeningMs,
+                    representativeTrackUri = row.representativeTrackUri,
                 )
             }
         }
@@ -328,6 +330,7 @@ class RoomListeningHistoryRepository(
             artistName = artistName,
             plays = plays,
             listeningMs = listeningMs,
+            spotifyUri = spotifyUri,
         )
 }
 
