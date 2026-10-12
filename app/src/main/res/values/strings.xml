@@ -20,6 +20,7 @@
     <string name="demo_import_action">Import my Spotify history</string>
     <string name="artwork_online_title">Real album artwork (optional)</string>
     <string name="artwork_online_explanation">Off by default. If enabled, public track IDs are sent to Spotify to retrieve covers. No listening history is uploaded. Requires Internet; images are not stored on disk.</string>
+    <string name="chart_daily_average">Daily average: %1$s</string>
     <string name="artwork_spotify_credit">Cover art from Spotify · Open track ↗</string>
     <string name="onboarding_reimport_note">You can safely import the same export again later: duplicate play events are ignored. Exploring without data only skips onboarding for this app session.</string>
 
