@@ -38,7 +38,7 @@ fun FirstRunOnboardingScreen(onImportStarted: () -> Unit, onImportFinished: () -
             Text(stringResource(R.string.onboarding_reimport_note), style = MaterialTheme.typography.bodySmall)
         } else Button(onClick = { step++ }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.action_next)) }
         if (step > 0) TextButton(onClick = { step-- }) { Text(stringResource(R.string.action_back)) }
-        TextButton(onClick = onContinueWithoutImport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboarding_explore_without_import)) }
+        Button(onClick = onContinueWithoutImport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.onboarding_explore_without_import)) }
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
     }
 }
