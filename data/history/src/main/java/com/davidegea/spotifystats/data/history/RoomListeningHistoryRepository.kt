@@ -143,6 +143,7 @@ class RoomListeningHistoryRepository(
                 TrackDetail(
                     id = it.id,
                     name = it.name,
+                    spotifyUri = it.spotifyUri,
                     artistName = it.artistName,
                     totalPlays = it.totalPlays,
                     totalListeningMs = it.totalListeningMs,
@@ -177,6 +178,7 @@ class RoomListeningHistoryRepository(
                     id = it.id,
                     name = it.name,
                     allTimeRank = it.allTimeRank, mostActiveYear = it.mostActiveYear,
+                    representativeTrackUri = it.representativeTrackUri,
                     totalPlays = it.totalPlays,
                     totalListeningMs = it.totalListeningMs,
                     uniqueTracks = it.uniqueTracks,
@@ -235,6 +237,7 @@ class RoomListeningHistoryRepository(
                     id = it.id,
                     name = it.name,
                     peakMonth = it.peakMonth,
+                    representativeTrackUri = it.representativeTrackUri,
                     artistName = it.artistName,
                     totalPlays = it.totalPlays,
                     totalListeningMs = it.totalListeningMs,
