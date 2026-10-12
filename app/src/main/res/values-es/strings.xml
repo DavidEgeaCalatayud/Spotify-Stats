@@ -20,6 +20,7 @@
     <string name="demo_import_action">Importar mi historial de Spotify</string>
     <string name="artwork_online_title">Carátulas reales (opcional)</string>
     <string name="artwork_online_explanation">Desactivado por defecto. Al activarlo, se envían identificadores públicos de canciones a Spotify para obtener las carátulas. No se sube tu historial. Necesita Internet; las imágenes no se guardan en disco.</string>
+    <string name="chart_daily_average">Media diaria: %1$s</string>
     <string name="artwork_spotify_credit">Carátula de Spotify · Abrir canción ↗</string>
     <string name="onboarding_reimport_note">Puedes importar el mismo historial más adelante sin riesgo: las reproducciones duplicadas se ignoran. Explorar sin datos solo omite el onboarding durante esta sesión.</string>
 
