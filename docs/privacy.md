@@ -1,15 +1,26 @@
 # Privacy
 
-The offline build has no Internet permission, app accounts, analytics SDK or backend.
-Imported listening history and derived analytics remain on the device. Spotify is not
-authenticated by this build and IP/user-agent export fields are discarded.
+The app requests Internet permission solely for optional online cover artwork, which is OFF
+by default. No app account, analytics SDK or backend is used. Imported listening history
+and derived analytics remain on the device. Spotify authentication is not required for
+artwork; IP/user-agent fields from exports are discarded.
+
+If the user enables covers on Home, the app sends individual public Spotify track URLs
+(containing track IDs) to Spotify's oEmbed endpoint and requests resulting thumbnails
+from Spotify image hosting. Spotify may observe those requests, IP/network data and
+which tracks the user looks up. It does not receive the imported history file or
+listening counts. Artwork is shown temporarily, not stored in Room or an app disk cache.
+Turning the option off stops further artwork requests. Without connectivity or artwork
+availability, decorative local placeholders remain visible.
+
+Demo mode is explicitly marked as sample data, held only in memory, and never written
+to the personal listening database.
 
 ## Stored locally
 
 Track/artist/album identity, Spotify URI when provided, stream-end timestamps, listened
 milliseconds, platform/country, playback reasons, optional skip/shuffle/offline/private
-flags and source provenance. Names inferred from the export may be ambiguous; no remote
-metadata is fetched to resolve them.
+flags and source provenance. Names inferred from the export may be ambiguous; optional thumbnail lookup does not modify or resolve the recorded history.
 
 Room/SQLite and FTS4 indexes live in Android app-private storage. **They are not SQLCipher
 encrypted.** Android platform backup is disabled. Encryption evaluation and the remaining
