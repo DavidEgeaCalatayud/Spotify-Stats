@@ -112,6 +112,7 @@ data class ArtistRangeRank(
 data class TrackDetail(
     val id: Long,
     val name: String,
+    val spotifyUri: String? = null,
     val artistName: String?,
     val totalPlays: Long,
     val totalListeningMs: Long,
@@ -130,6 +131,7 @@ data class TrackDetail(
 data class ArtistDetail(
     val id: Long,
     val name: String,
+    val representativeTrackUri: String? = null,
     val totalPlays: Long,
     val totalListeningMs: Long,
     val uniqueTracks: Long,
@@ -144,6 +146,7 @@ data class ArtistDetail(
 data class AlbumDetail(
     val id: Long,
     val name: String,
+    val representativeTrackUri: String? = null,
     val artistName: String?,
     val totalPlays: Long,
     val totalListeningMs: Long,
