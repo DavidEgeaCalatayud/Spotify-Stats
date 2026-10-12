@@ -74,6 +74,7 @@ private fun AlbumDetailScreen(
             secondaryValue = listeningTime(detail.totalListeningMs),
             secondaryLabel = stringResource(R.string.metric_listening),
             roundArtwork = false,
+            artworkUri = detail.representativeTrackUri,
         )
 
         Row(
