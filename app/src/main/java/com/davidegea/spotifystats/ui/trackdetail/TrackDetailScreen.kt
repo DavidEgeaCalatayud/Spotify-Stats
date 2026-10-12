@@ -68,6 +68,7 @@ private fun TrackDetailScreen(
             secondaryValue = listeningTime(detail.totalListeningMs),
             secondaryLabel = stringResource(R.string.metric_listening),
             roundArtwork = false,
+            artworkUri = detail.spotifyUri,
         )
 
         Card(
