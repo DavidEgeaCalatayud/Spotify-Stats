@@ -40,6 +40,7 @@ data class AlbumRankingRow(
 data class TrackDetailRow(
     val id: Long,
     val name: String,
+    val spotifyUri: String?,
     val artistName: String?,
     val totalPlays: Long,
     val totalListeningMs: Long,
@@ -56,6 +57,7 @@ data class TrackDetailRow(
 data class ArtistDetailRow(
     val id: Long,
     val name: String,
+    val representativeTrackUri: String?,
     val totalPlays: Long,
     val totalListeningMs: Long,
     val allTimeRank: Long,
@@ -68,6 +70,7 @@ data class ArtistDetailRow(
 data class AlbumDetailRow(
     val id: Long,
     val name: String,
+    val representativeTrackUri: String?,
     val artistName: String?,
     val totalPlays: Long,
     val totalListeningMs: Long,
@@ -358,6 +361,7 @@ interface ListeningHistoryDao {
         SELECT
             a.id AS id,
             a.name AS name,
+            (SELECT t2.spotify_uri FROM track_artists ta2 JOIN tracks t2 ON t2.id = ta2.track_id WHERE ta2.artist_id = a.id AND t2.spotify_uri IS NOT NULL LIMIT 1) AS representativeTrackUri,
             COUNT(pe.id) AS totalPlays,
             COALESCE(SUM(pe.ms_played), 0) AS totalListeningMs,
             COUNT(DISTINCT CASE WHEN pe.id IS NOT NULL THEN ta.track_id END) AS uniqueTracks,
@@ -503,6 +507,7 @@ interface ListeningHistoryDao {
         SELECT
             al.id AS id,
             al.name AS name,
+            (SELECT t2.spotify_uri FROM tracks t2 WHERE t2.album_id = al.id AND t2.spotify_uri IS NOT NULL LIMIT 1) AS representativeTrackUri,
             (
                 SELECT a.name
                 FROM tracks candidate
