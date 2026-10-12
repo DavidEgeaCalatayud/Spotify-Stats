@@ -76,6 +76,7 @@ private fun ArtistDetailScreen(
             secondaryValue = listeningTime(detail.totalListeningMs),
             secondaryLabel = stringResource(R.string.metric_listening),
             roundArtwork = true,
+            artworkUri = detail.representativeTrackUri,
         )
 
         Row(
