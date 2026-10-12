@@ -49,6 +49,7 @@ The current V1 codebase includes:
 - foreground WorkManager execution with persisted per-file diagnostics and resume;
 - scalable keyset-paginated listening history;
 - indexed local search;
+- a music-first Home with the favourite artist, expressive listening trends and a one-tap sample Home demo;
 - Home, Library, entity details, Insights, Calendar and You/privacy surfaces;
 - today, 7d, 30d, 6 months, current year, all-time and custom ranges;
 - historical artist ranks and richer album analytics;
@@ -58,7 +59,7 @@ The current V1 codebase includes:
 - English and Spanish UI;
 - CI tests, lint, debug APK and release APK/AAB artifacts.
 
-The offline V1 intentionally has **no Android INTERNET permission**. CI inspects the generated release APK and fails if that privacy contract changes.
+The local analytics engine still works entirely offline. The app now declares Android `INTERNET` **only for an optional artwork feature**. That feature is disabled by default and never queries Spotify until the user enables it on Home. It uses official oEmbed thumbnails for tracks identified by valid Spotify URIs, with on-screen source links; no history files or metrics are uploaded, and artwork is not stored on disk. The one-tap demo uses fictional in-memory data rather than inserting records into Room.
 
 The remaining V1 gate is physical-device acceptance and production signing/distribution. Optional metadata enrichment, SQLCipher, Spotify Live Sync and MediaSession capture are V1.x/V1.1 work and do not block the offline release.
 

@@ -13,6 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
@@ -63,6 +67,8 @@ fun ActivityChart(
                 }
             }
             Text(selectionLabel, style = MaterialTheme.typography.labelLarge, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+            Text(stringResource(R.string.chart_daily_average, listeningTime(visible.sumOf { it.listeningMs } / visible.size)),
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Canvas(Modifier.fillMaxWidth().height(148.dp).semantics { contentDescription = chartLabel }
                 .pointerInput(visible) { detectTapGestures { offset -> selected = (offset.x / size.width * visible.size).toInt().coerceIn(visible.indices) } }) {
                 val height = size.height - 6.dp.toPx()
@@ -71,16 +77,42 @@ fun ActivityChart(
                     drawLine(grid.copy(alpha = 0.5f), Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
                 }
                 val step = size.width / visible.size
+                val average = visible.sumOf { it.listeningMs }.toFloat() / visible.size
+                val averageY = height - height * (average / maximum) * reveal
+                drawLine(
+                    grid, Offset(0f, averageY), Offset(size.width, averageY),
+                    1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 5.dp.toPx())),
+                )
+                val pulse = Path()
+                visible.forEachIndexed { index, day ->
+                    val point = Offset((index + 0.5f) * step, height - height * day.listeningMs / maximum.toFloat() * reveal)
+                    if (index == 0) pulse.moveTo(point.x, point.y) else pulse.lineTo(point.x, point.y)
+                }
                 visible.forEachIndexed { index, day ->
                     val barHeight = (height * day.listeningMs.toFloat() / maximum * reveal).coerceAtLeast(2.dp.toPx())
-                    drawRoundRect(primary.copy(alpha = if (index == selected) 1f else 0.55f),
-                        Offset(index * step + step * 0.2f, height - barHeight), Size(step * 0.6f, barHeight), CornerRadius(4.dp.toPx()))
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(
+                            0f to primary.copy(alpha = if (index == selected) 0.90f else 0.45f),
+                            1f to primary.copy(alpha = if (index == selected) 0.48f else 0.14f),
+                            startY = height - barHeight, endY = height,
+                        ),
+                        topLeft = Offset(index * step + step * 0.20f, height - barHeight),
+                        size = Size(step * 0.60f, barHeight),
+                        cornerRadius = CornerRadius(4.dp.toPx()),
+                    )
                     if (compare) {
                         val prior = previous.getOrNull(previous.size - visible.size + index)?.listeningMs ?: 0
                         val y = height - height * prior.toFloat() / maximum * reveal
                         drawLine(comparison, Offset(index * step + step * 0.15f, y), Offset(index * step + step * 0.85f, y), 2.dp.toPx(), StrokeCap.Round)
                     }
                 }
+                drawPath(pulse, primary, style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
+                val picked = visible[selected.coerceIn(visible.indices)]
+                drawCircle(
+                    primary,
+                    radius = 5.dp.toPx(),
+                    center = Offset((selected + 0.5f) * step, height - height * picked.listeningMs / maximum.toFloat() * reveal),
+                )
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 listOf(0, 7, 14, 21, visible.lastIndex).filter { it <= visible.lastIndex }.distinct().sorted().forEach { index ->

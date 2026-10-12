@@ -110,7 +110,7 @@ Spotify Stats is an unofficial application and is not affiliated with or endorse
 
 ## CI privacy guardrail
 
-The Android CI inspects the built release APK, not only the source manifest. The build fails if the merged release manifest contains `android.permission.INTERNET`. This protects the offline V1 against accidental permission additions from future dependencies.
+The Android CI inspects the built release APK and verifies the optional INTERNET permission. The default for online album artwork is **off**, and HTTP requests are only triggered after explicit opt-in; historical analytics and import remain offline.
 
 ## Release candidate acceptance
 

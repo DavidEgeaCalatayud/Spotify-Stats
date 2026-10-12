@@ -98,7 +98,7 @@ Generate both supported V1 share outputs.
 - Airplane mode after import: app remains functional
 - Home/Library/Insights/Calendar/Details work offline
 - Wrapped generation works offline
-- Android manifest has no INTERNET permission
+- Manifest declares INTERNET only for opt-in cover art. On first install, verify no Spotify image/metadata traffic occurs until the user enables it on Home; analytics and demo remain offline.
 - No unexpected network traffic observed
 
 ## Accessibility acceptance

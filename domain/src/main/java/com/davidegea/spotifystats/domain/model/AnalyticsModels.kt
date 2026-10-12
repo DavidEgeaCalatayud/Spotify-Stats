@@ -22,6 +22,7 @@ data class TrackRanking(
     val artistName: String?,
     val plays: Long,
     val listeningMs: Long,
+    val spotifyUri: String? = null,
 )
 
 data class ArtistRanking(
@@ -29,6 +30,7 @@ data class ArtistRanking(
     val name: String,
     val plays: Long,
     val listeningMs: Long,
+    val representativeTrackUri: String? = null,
 )
 
 data class AlbumRanking(
@@ -37,6 +39,7 @@ data class AlbumRanking(
     val artistName: String?,
     val plays: Long,
     val listeningMs: Long,
+    val representativeTrackUri: String? = null,
 )
 
 data class LibraryRankings(
@@ -122,6 +125,7 @@ data class TrackDetail(
     val completedPlays: Long = 0,
     val favouriteHour: Int? = null,
     val longestStreakDays: Int = 0,
+    val spotifyUri: String? = null
 )
 
 data class ArtistDetail(
@@ -136,6 +140,7 @@ data class ArtistDetail(
     val mostActiveYear: Int? = null,
     val rankByYear: List<ArtistYearRank> = emptyList(),
     val topTracks: List<TrackRanking> = emptyList(),
+    val representativeTrackUri: String? = null
 )
 
 data class AlbumDetail(
@@ -152,6 +157,7 @@ data class AlbumDetail(
     val meaningfulPlays: Long = 0,
     val playsByYear: List<YearlyListening> = emptyList(),
     val topTracks: List<TrackRanking> = emptyList(),
+    val representativeTrackUri: String? = null
 )
 
 data class ListeningHistoryItem(

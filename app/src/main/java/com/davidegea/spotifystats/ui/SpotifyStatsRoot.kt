@@ -58,10 +58,11 @@ fun SpotifyStatsRoot(
     launchViewModel: AppLaunchViewModel = hiltViewModel(),
 ) {
     val launchState by launchViewModel.uiState.collectAsStateWithLifecycle()
-    var exploreWithoutData by rememberSaveable { mutableStateOf(false) }
+    var demoMode by rememberSaveable { mutableStateOf(false) }
 
     when {
-        exploreWithoutData || launchState == AppLaunchState.Ready -> SpotifyStatsAppShell()
+        launchState == AppLaunchState.Ready -> SpotifyStatsAppShell(demoMode = false)
+        demoMode -> SpotifyStatsAppShell(demoMode = true)
         launchState == AppLaunchState.Loading -> {
             androidx.compose.material3.Surface(Modifier.fillMaxSize()) {
                 Column(
@@ -97,18 +98,18 @@ fun SpotifyStatsRoot(
             FirstRunOnboardingScreen(
                 onImportStarted = launchViewModel::onImportStarted,
                 onImportFinished = launchViewModel::onImportFinished,
-                onContinueWithoutImport = { exploreWithoutData = true },
+                onContinueWithoutImport = { demoMode = true },
             )
         }
     }
 }
 
 @Composable
-private fun SpotifyStatsAppShell() {
+private fun SpotifyStatsAppShell(demoMode: Boolean = false) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val showNavigation = currentRoute in AppDestination.entries.map { it.route }
+    val showNavigation = !demoMode && currentRoute in AppDestination.entries.map { it.route }
     val navigate: (AppDestination) -> Unit = { destination ->
         navController.navigate(destination.route) {
             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -143,7 +144,8 @@ private fun SpotifyStatsAppShell() {
                         HomeRoute(onTrackClick = { navController.navigate("track/$it") },
                             onArtistClick = { navController.navigate("artist/$it") },
                             onAlbumClick = { navController.navigate("album/$it") },
-                            onImport = { navController.navigate("import") })
+                            onImport = { navController.navigate("import") },
+                            demoMode = demoMode)
                     }
                     composable(AppDestination.Library.route) {
                         LibraryRoute(onTrackClick = { navController.navigate("track/$it") },

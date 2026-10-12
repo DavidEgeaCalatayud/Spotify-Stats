@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 21 September 2026_
+_Last updated: 12 October 2026_
 
 Spotify Stats is a local-first Android application for analysing a user's Spotify Extended Streaming History.
 
@@ -14,7 +14,7 @@ The app deliberately does not store IP-address or user-agent fields from Spotify
 
 The offline V1 stores imported history and derived analytics in the application's local Room/SQLite database on the Android device. The offline V1 does not require an account and does not upload listening history to an application backend.
 
-The Android manifest for the offline V1 does not request Internet access.
+The Android manifest requests Internet permission for an optional real-cover-art feature. This feature is switched off by default. If the user activates it, the app sends individual Spotify track identifiers to Spotify's official oEmbed service and loads its thumbnail image. Spotify may receive the requesting device's IP/network metadata and can infer the tracks queried. The app does not send playback counts, private history archives, dates or listening events. Thumbnails are not written to Room or a disk cache. Core analytics and history browsing remain local and work offline.
 
 ## Backups and sharing
 
@@ -28,7 +28,7 @@ The app provides a local-data deletion action. This removes the app-managed list
 
 ## Optional future integrations
 
-Spotify API synchronization, optional encrypted storage and other network-backed features are not part of the current offline V1. If such features are released, this policy and the application's permission/data-safety declarations must be updated before distribution.
+Account-based Spotify API synchronization, optional encrypted storage and other network-backed features beyond opt-in artwork are not part of the current release. If such features are released, this policy and the application's permission/data-safety declarations must be updated before distribution.
 
 ## Third parties
 
