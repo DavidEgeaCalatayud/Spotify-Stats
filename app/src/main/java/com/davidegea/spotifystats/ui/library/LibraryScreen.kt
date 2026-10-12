@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -31,11 +32,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.davidegea.spotifystats.R
 import com.davidegea.spotifystats.domain.model.*
 import com.davidegea.spotifystats.ui.components.*
+import com.davidegea.spotifystats.ui.settings.AppPreferences
 import java.text.DateFormat
 import java.util.Date
 
 private enum class LibrarySection { Songs, Artists, Albums, History }
-private data class RankingItem(val id: Long, val name: String, val subtitle: String?, val plays: Long, val ms: Long)
+private data class RankingItem(val id: Long, val name: String, val subtitle: String?, val plays: Long, val ms: Long, val trackUri: String? = null)
 
 @Composable
 fun LibraryRoute(onTrackClick: (Long) -> Unit, onArtistClick: (Long) -> Unit, onAlbumClick: (Long) -> Unit, initialRange: TimeRange? = null, initialHistory: Boolean = false, viewModel: LibraryViewModel = hiltViewModel()) {
@@ -56,6 +58,8 @@ internal fun LibraryScreen(
     var expanded by rememberSaveable { mutableStateOf(false) }
     var section by rememberSaveable { mutableStateOf(if (initialHistory) LibrarySection.History else LibrarySection.Songs) }
     val focus = LocalFocusManager.current
+    val context = LocalContext.current
+    val onlineArtwork = remember(context) { AppPreferences.onlineArtwork(context) }
     LaunchedEffect(query) { onSearch(query) }
     BackHandler(expanded) { expanded = false; focus.clearFocus() }
     val resultClick: (SearchResult) -> Unit = { result ->
@@ -96,9 +100,9 @@ internal fun LibraryScreen(
                     if (state.loading) LoadingStateCard(stringResource(R.string.state_loading))
                     else AnimatedContent(section, Modifier.weight(1f), transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) }, label = "library section") { selected ->
                         val rankings = when (selected) {
-                            LibrarySection.Songs -> state.tracks.map { RankingItem(it.id, it.name, it.artistName, it.plays, it.listeningMs) }
-                            LibrarySection.Artists -> state.artists.map { RankingItem(it.id, it.name, null, it.plays, it.listeningMs) }
-                            LibrarySection.Albums -> state.albums.map { RankingItem(it.id, it.name, it.artistName, it.plays, it.listeningMs) }
+                            LibrarySection.Songs -> state.tracks.map { RankingItem(it.id, it.name, it.artistName, it.plays, it.listeningMs, it.spotifyUri) }
+                            LibrarySection.Artists -> state.artists.map { RankingItem(it.id, it.name, null, it.plays, it.listeningMs, it.representativeTrackUri) }
+                            LibrarySection.Albums -> state.albums.map { RankingItem(it.id, it.name, it.artistName, it.plays, it.listeningMs, it.representativeTrackUri) }
                             LibrarySection.History -> emptyList()
                         }
                         val open: (Long) -> Unit = when (selected) {
@@ -128,8 +132,8 @@ internal fun LibraryScreen(
                                 if (!state.historyLoading && state.history.isEmpty()) item { EmptyStateCard(stringResource(R.string.state_no_data), stringResource(R.string.library_no_data_period)) }
                             } else {
                                 if (rankings.isEmpty()) item { EmptyStateCard(stringResource(R.string.state_no_data), stringResource(R.string.library_no_data_period)) }
-                                if (rankings.isNotEmpty()) item { Podium(rankings.take(3), selected == LibrarySection.Artists, open) }
-                                itemsIndexed(rankings.drop(3), key = { _, item -> item.id }) { index, item -> RankingRow(index + 4, item, selected == LibrarySection.Artists) { open(item.id) } }
+                                if (rankings.isNotEmpty()) item { Podium(rankings.take(3), selected == LibrarySection.Artists, onlineArtwork, open) }
+                                itemsIndexed(rankings.drop(3), key = { _, item -> item.id }) { index, item -> RankingRow(index + 4, item, selected == LibrarySection.Artists, onlineArtwork) { open(item.id) } }
                                 if (rankings.size >= state.limit) item { TextButton(onClick = onMoreRankings) { Text(stringResource(R.string.library_load_more)) } }
                             }
                         }
@@ -163,9 +167,9 @@ private fun SearchResults(state: LibraryUiState, query: String, onClick: (Search
 }
 
 @Composable
-private fun Podium(items: List<RankingItem>, artists: Boolean, onClick: (Long) -> Unit) {
+private fun Podium(items: List<RankingItem>, artists: Boolean, onlineArtwork: Boolean, onClick: (Long) -> Unit) {
     if (LocalConfiguration.current.fontScale > 1.3f) {
-        Column { items.forEachIndexed { index, item -> RankingRow(index + 1, item, artists) { onClick(item.id) } } }
+        Column { items.forEachIndexed { index, item -> RankingRow(index + 1, item, artists, onlineArtwork) { onClick(item.id) } } }
     } else Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items.forEachIndexed { index, item ->
             Card(onClick = { onClick(item.id) }, modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(
@@ -173,7 +177,7 @@ private fun Podium(items: List<RankingItem>, artists: Boolean, onClick: (Long) -
             )) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("0${index + 1}", style = MaterialTheme.typography.headlineSmall)
-                    LocalArtwork(item.name, size = 56.dp, round = artists)
+                    MusicArtwork(item.name, item.trackUri, onlineArtwork, size = 56.dp, round = artists && !onlineArtwork)
                     Text(item.name, style = MaterialTheme.typography.titleSmall, maxLines = 3, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.semantics { contentDescription = item.name })
                     Text(stringResource(R.string.wrapped_card_plays, item.plays), style = MaterialTheme.typography.labelSmall)
@@ -184,10 +188,10 @@ private fun Podium(items: List<RankingItem>, artists: Boolean, onClick: (Long) -
 }
 
 @Composable
-private fun RankingRow(rank: Int, item: RankingItem, artist: Boolean, onClick: () -> Unit) {
+private fun RankingRow(rank: Int, item: RankingItem, artist: Boolean, onlineArtwork: Boolean, onClick: () -> Unit) {
     Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(rank.toString().padStart(2, '0'), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        LocalArtwork(item.name, size = 48.dp, round = artist)
+        MusicArtwork(item.name, item.trackUri, onlineArtwork, size = 48.dp, round = artist && !onlineArtwork)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(item.name, style = MaterialTheme.typography.titleMedium)
             item.subtitle?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
