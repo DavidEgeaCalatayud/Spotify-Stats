@@ -14,7 +14,13 @@
     <string name="onboarding_local_body">Room/SQLite guarda tus reproducciones en este dispositivo. Se ignoran las direcciones IP y los datos de user-agent.</string>
     <string name="onboarding_explore_title">3 · Explora sin conexión</string>
     <string name="onboarding_explore_body">Inicio, Biblioteca, Insights, Calendario, búsqueda y Wrapped siguen funcionando sin cuenta ni conexión a Internet.</string>
-    <string name="onboarding_explore_without_import">Explorar sin importar</string>
+    <string name="onboarding_explore_without_import">Probar la demo al instante</string>
+    <string name="demo_badge">DEMO · Datos de ejemplo</string>
+    <string name="demo_disclaimer">Descubre cómo quedará tu panel musical. Estas estadísticas son ficticias y no se añaden a tu biblioteca. Hasta importar tu historial, solo está disponible Inicio.</string>
+    <string name="demo_import_action">Importar mi historial de Spotify</string>
+    <string name="artwork_online_title">Carátulas reales (opcional)</string>
+    <string name="artwork_online_explanation">Desactivado por defecto. Al activarlo, se envían identificadores públicos de canciones a Spotify para obtener las carátulas. No se sube tu historial. Necesita Internet; las imágenes no se guardan en disco.</string>
+    <string name="artwork_spotify_credit">Carátula de Spotify · Abrir canción ↗</string>
     <string name="onboarding_reimport_note">Puedes importar el mismo historial más adelante sin riesgo: las reproducciones duplicadas se ignoran. Explorar sin datos solo omite el onboarding durante esta sesión.</string>
 
     <string name="state_loading">Cargando…</string>
