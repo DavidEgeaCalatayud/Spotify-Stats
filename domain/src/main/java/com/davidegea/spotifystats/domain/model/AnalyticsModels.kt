@@ -22,6 +22,7 @@ data class TrackRanking(
     val artistName: String?,
     val plays: Long,
     val listeningMs: Long,
+    val spotifyUri: String? = null,
 )
 
 data class ArtistRanking(
@@ -29,6 +30,7 @@ data class ArtistRanking(
     val name: String,
     val plays: Long,
     val listeningMs: Long,
+    val representativeTrackUri: String? = null,
 )
 
 data class AlbumRanking(
@@ -37,6 +39,7 @@ data class AlbumRanking(
     val artistName: String?,
     val plays: Long,
     val listeningMs: Long,
+    val representativeTrackUri: String? = null,
 )
 
 data class LibraryRankings(
