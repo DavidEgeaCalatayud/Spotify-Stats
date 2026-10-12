@@ -10,6 +10,13 @@ import android.os.LocaleList
 object AppPreferences {
     fun store(context: Context) = context.getSharedPreferences("appearance", Context.MODE_PRIVATE)
     fun theme(context: Context): String = store(context).getString("theme", "system") ?: "system"
+
+    /** Disabled until explicitly opted in: no metadata or artwork requests on first launch. */
+    fun onlineArtwork(context: Context): Boolean = store(context).getBoolean("online_artwork", false)
+
+    fun setOnlineArtwork(context: Context, enabled: Boolean) {
+        store(context).edit().putBoolean("online_artwork", enabled).apply()
+    }
     fun language(context: Context): String = if (Build.VERSION.SDK_INT >= 33) {
         val locales = context.getSystemService(LocaleManager::class.java).applicationLocales
         if (locales.isEmpty) "system" else locales[0].language
