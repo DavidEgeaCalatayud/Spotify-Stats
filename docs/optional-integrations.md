@@ -2,8 +2,7 @@
 
 ## Spotify beta adapter (not implemented)
 
-The public offline build deliberately has no INTERNET permission. Add a separate
-`data:spotify` adapter and a beta build variant so import-only installations retain that property.
+The core analytics engine stays offline; the app now declares INTERNET only for user-enabled Spotify oEmbed artwork. OAuth-based Spotify history sync is still NOT implemented. Add a separate `data:spotify` adapter and a beta build variant for any account integration.
 
 Activation requires a Spotify developer application's public client ID and registered
 redirect URI. Never request or embed a client secret in Android. Authorize with PKCE S256,
