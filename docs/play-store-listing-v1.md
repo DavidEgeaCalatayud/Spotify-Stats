@@ -33,7 +33,7 @@ Explore:
 
 ### Privacy by design
 
-The offline V1 does not request the Android INTERNET permission. Spotify export fields that are not needed for analytics, including IP address and user-agent information, are intentionally not stored.
+The application requests Internet permission for an **optional** album-cover lookup. This is disabled by default. When enabled, public track IDs are queried against Spotify's oEmbed endpoint; this discloses the queried track IDs and device network metadata to Spotify. Core listening analytics remain entirely on-device, and IP/user-agent fields from exports are not stored.
 
 Sharing a recap or exporting a backup happens only after you explicitly choose an Android destination.
 
@@ -66,7 +66,7 @@ Validate these against the exact binary uploaded to Play Console.
 - Account creation: none.
 - Advertising SDK: none.
 - Analytics/telemetry SDK: none.
-- INTERNET permission: absent.
+- INTERNET permission: present, only for user-enabled Spotify oEmbed covers.
 - Imported listening history: processed/stored locally.
 - Backup destination: user-selected through Android document APIs.
 - Share destination: user-selected through Android Sharesheet.
