@@ -14,6 +14,7 @@ data class OverviewStatsRow(
 data class TrackRankingRow(
     val id: Long,
     val name: String,
+    val spotifyUri: String?,
     val artistName: String?,
     val plays: Long,
     val listeningMs: Long,
@@ -22,6 +23,7 @@ data class TrackRankingRow(
 data class ArtistRankingRow(
     val id: Long,
     val name: String,
+    val representativeTrackUri: String?,
     val plays: Long,
     val listeningMs: Long,
 )
@@ -29,6 +31,7 @@ data class ArtistRankingRow(
 data class AlbumRankingRow(
     val id: Long,
     val name: String,
+    val representativeTrackUri: String?,
     val artistName: String?,
     val plays: Long,
     val listeningMs: Long,
@@ -216,6 +219,7 @@ interface ListeningHistoryDao {
         SELECT
             t.id AS id,
             t.name AS name,
+            t.spotify_uri AS spotifyUri,
             (
                 SELECT a.name
                 FROM track_artists ta
@@ -246,6 +250,7 @@ interface ListeningHistoryDao {
         SELECT
             a.id AS id,
             a.name AS name,
+            MAX((SELECT t2.spotify_uri FROM tracks t2 WHERE t2.id = pe.track_id)) AS representativeTrackUri,
             COUNT(pe.id) AS plays,
             COALESCE(SUM(pe.ms_played), 0) AS listeningMs
         FROM play_events pe
@@ -269,6 +274,7 @@ interface ListeningHistoryDao {
         SELECT
             al.id AS id,
             al.name AS name,
+            (SELECT t2.spotify_uri FROM tracks t2 WHERE t2.album_id = al.id AND t2.spotify_uri IS NOT NULL LIMIT 1) AS representativeTrackUri,
             (
                 SELECT a.name
                 FROM tracks at
@@ -301,6 +307,7 @@ interface ListeningHistoryDao {
         SELECT
             t.id AS id,
             t.name AS name,
+            t.spotify_uri AS spotifyUri,
             (
                 SELECT a.name
                 FROM track_artists ta
@@ -377,6 +384,7 @@ interface ListeningHistoryDao {
         SELECT
             t.id AS id,
             t.name AS name,
+            t.spotify_uri AS spotifyUri,
             a.name AS artistName,
             COUNT(pe.id) AS plays,
             COALESCE(SUM(pe.ms_played), 0) AS listeningMs
@@ -536,6 +544,7 @@ interface ListeningHistoryDao {
         SELECT
             t.id AS id,
             t.name AS name,
+            t.spotify_uri AS spotifyUri,
             (
                 SELECT a.name
                 FROM track_artists ta
